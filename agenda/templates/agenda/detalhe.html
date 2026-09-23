@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}Agendamento · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+{% with a=agendamento %}
+<div class="mx-auto max-w-2xl">
+  <a href="{% url 'agenda:dia' %}?data={{ a.inicio|date:'Y-m-d' }}" class="text-sm text-slate-500 hover:text-rose-600">← Agenda do dia</a>
+
+  <div class="mt-2 flex flex-wrap items-center gap-3">
+    <h1 class="text-2xl font-bold">{{ a.procedimento.nome }}</h1>
+    {% include "agenda/_status.html" with status=a.status rotulo=a.get_status_display %}
+  </div>
+
+  {% if a.status == 'precisa_reagendar' %}
+    <p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">Este horário foi bloqueado ou saiu do expediente. Remarque ou cancele o agendamento.</p>
+  {% endif %}
+
+  <dl class="cartao mt-6 divide-y divide-slate-100">
+    <div class="grid gap-1 px-5 py-3 sm:grid-cols-3">
+      <dt class="text-sm text-slate-500">Quando</dt>
+      <dd class="sm:col-span-2"><span class="capitalize">{{ a.inicio|date:"l" }}</span>, {{ a.inicio|date:"d/m/Y" }} · {{ a.inicio|time:"H:i" }}–{{ a.fim_atendimento|time:"H:i" }}
+        {% if a.intervalo_minutos %}<span class="text-sm text-slate-500">(+ {{ a.intervalo_minutos|duracao }} de intervalo)</span>{% endif %}</dd>
+    </div>
+    <div class="grid gap-1 px-5 py-3 sm:grid-cols-3">
+      <dt class="text-sm text-slate-500">Cliente</dt>
+      <dd class="sm:col-span-2">{{ a.cliente.nome }}<br>
+        <a href="tel:{{ a.cliente.telefone }}" class="text-rose-600 hover:underline">{{ a.cliente.telefone|telefone }}</a></dd>
+    </div>
+    <div class="grid gap-1 px-5 py-3 sm:grid-cols-3">
+      <dt class="text-sm text-slate-500">Valor</dt>
+      <dd class="sm:col-span-2">R$ {{ a.preco|floatformat:"2g" }}</dd>
+    </div>
+    {% if recursos %}
+      <div class="grid gap-1 px-5 py-3 sm:grid-cols-3">
+        <dt class="text-sm text-slate-500">Sala / equipamento</dt>
+        <dd class="sm:col-span-2">{{ recursos|join:", " }}</dd>
+      </div>
+    {% endif %}
+    <div class="grid gap-1 px-5 py-3 sm:grid-cols-3">
+      <dt class="text-sm text-slate-500">Criado por</dt>
+      <dd class="sm:col-span-2">{{ a.get_origem_display }} em {{ a.criado_em|date:"d/m/Y H:i" }}
+        {% if a.cancelado_em %}<br>Cancelado por {{ a.get_cancelado_por_display|lower }} em {{ a.cancelado_em|date:"d/m/Y H:i" }}{% endif %}</dd>
+    </div>
+  </dl>
+
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+    {% if pode_registrar_presenca %}
+      <form method="post" action="{% url 'agenda:presenca' a.pk %}" class="contents">
+        {% csrf_token %}
+        {% if a.status != 'atendido' %}<button name="compareceu" value="1" class="btn-primario">Marcar como atendido</button>{% endif %}
+        {% if a.status != 'faltou' %}<button name="compareceu" value="0" class="btn-secundario">Cliente faltou</button>{% endif %}
+      </form>
+    {% endif %}
+    {% if a.em_aberto %}
+      <a href="{% url 'agenda:remarcar' a.pk %}" class="btn-secundario">Remarcar</a>
+      <form method="post" action="{% url 'agenda:cancelar' a.pk %}" onsubmit="return confirm('Cancelar este agendamento?')" class="contents">
+        {% csrf_token %}
+        <button class="btn-secundario text-red-700">Cancelar agendamento</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

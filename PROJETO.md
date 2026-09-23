@@ -113,7 +113,16 @@ agendado ──► atendido
 - Tentativas de acesso têm **limite (rate limiting)** para impedir que alguém teste datas até acertar.
 - **LGPD:** mostrar um aviso ou checkbox de consentimento no primeiro agendamento e coletar só os dados necessários.
 
-### 4.6 Fuso horário
+### 4.6 Decisões da implementação da agenda
+- **Horário de trabalho:** até **dois períodos por dia** (ex.: 09:00–12:00 e 13:00–18:00), sempre dentro do horário da clínica.
+- **Mudanças de horário:** se o profissional muda os horários de trabalho, ou o gerente muda o horário da clínica, os agendamentos futuros que ficam fora do expediente viram **precisa reagendar**, igual aos bloqueios.
+- **Agendamento pela equipe:** a data de nascimento do cliente é **opcional**. Se o cliente agendar online depois, com o mesmo telefone, a data é completada.
+- **Mesmo telefone, mesmo cliente:** um telefone já cadastrado mantém o nome existente.
+- **Horário e recursos liberados:** um agendamento em **precisa reagendar** ou **cancelado** deixa de ocupar o horário e as salas e equipamentos.
+- **Registro de presença:** atendido ou faltou só pode ser marcado **depois do horário do agendamento**. É possível corrigir de um para o outro.
+- **Agendamento duplo:** o banco de dados (PostgreSQL, *exclusion constraints*) impede sobreposição para o mesmo profissional ou recurso, mesmo com duas requisições simultâneas.
+
+### 4.7 Fuso horário
 - Um único fuso: **America/Sao_Paulo** **[suposição]**.
 
 ## 5. Fora do escopo da v1

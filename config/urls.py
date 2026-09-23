@@ -10,4 +10,5 @@ urlpatterns = [
     path("", include("clinica.urls")),
     path("", include("catalogo.urls")),
     path("", include("equipe.urls")),
+    path("", include("agenda.urls")),
 ]

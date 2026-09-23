@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Minha agenda · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold first-letter:uppercase">{{ data|date:"l" }}</h1>
+    <p class="text-slate-500">{{ data|date:"d \d\e F \d\e Y" }}</p>
+  </div>
+  <a href="{% url 'agenda:novo' %}?data={{ data|date:'Y-m-d' }}" class="btn-primario w-full sm:w-auto">Novo agendamento</a>
+</div>
+
+<div class="mt-4 flex flex-wrap items-center gap-2">
+  <a href="?data={{ anterior|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Dia anterior">←</a>
+  <a href="?data={{ hoje|date:'Y-m-d' }}" class="btn-pequeno">Hoje</a>
+  <a href="?data={{ proximo|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Próximo dia">→</a>
+  <form method="get" class="ml-auto">
+    <input type="date" name="data" value="{{ data|date:'Y-m-d' }}" onchange="this.form.submit()"
+           class="rounded-lg border-slate-300 py-1.5 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500" aria-label="Ir para a data">
+  </form>
+</div>
+
+<p class="mt-4 text-sm text-slate-500">
+  {% if expediente %}
+    Expediente: {% for inicio, fim in expediente %}{{ inicio|time:"H:i" }}–{{ fim|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  {% else %}
+    Você não atende neste dia. <a href="{% url 'agenda:horarios' %}" class="text-rose-600 hover:underline">Ajustar horários</a>
+  {% endif %}
+</p>
+
+<div class="mt-4 space-y-3">
+  {% for item in itens %}
+    {% include "agenda/_item.html" %}
+  {% empty %}
+    <p class="cartao p-5 text-slate-600">Nenhum agendamento neste dia.</p>
+  {% endfor %}
+</div>
+
+{% if cancelados %}
+  <p class="mt-4 text-sm text-slate-500">{{ cancelados }} agendamento{{ cancelados|pluralize }} cancelado{{ cancelados|pluralize }} neste dia.</p>
+{% endif %}
+{% endblock %}

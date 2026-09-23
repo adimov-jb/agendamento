@@ -1,0 +1,17 @@
+{% if horarios is None %}
+  <p class="text-sm text-slate-500">Escolha o procedimento e a data para ver os horários livres.</p>
+{% elif horarios %}
+  <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+    {% for h in horarios %}
+      <label>
+        <input type="radio" name="inicio" value="{{ h.isoformat }}" class="peer sr-only" required
+               {% if escolhido == h.isoformat %}checked{% endif %}>
+        <span class="block cursor-pointer rounded-lg border border-slate-300 bg-white px-2 py-2 text-center text-sm font-medium
+                     hover:border-rose-400 peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:text-white
+                     peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500">{{ h|time:"H:i" }}</span>
+      </label>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-sm text-slate-500">Nenhum horário livre nesta data.</p>
+{% endif %}

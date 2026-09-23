@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Semana · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-bold">Semana de {{ dias.0.data|date:"d/m" }} a {{ dias.6.data|date:"d/m" }}</h1>
+  <div class="flex gap-2">
+    <a href="?data={{ anterior|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Semana anterior">←</a>
+    <a href="?data={{ hoje|date:'Y-m-d' }}" class="btn-pequeno">Esta semana</a>
+    <a href="?data={{ proximo|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Próxima semana">→</a>
+  </div>
+</div>
+
+<div class="mt-6 grid gap-4 lg:grid-cols-7 lg:gap-2">
+  {% for dia in dias %}
+    <section class="min-w-0 {% if not dia.expediente %}opacity-70{% endif %}">
+      <a href="{% url 'agenda:dia' %}?data={{ dia.data|date:'Y-m-d' }}"
+         class="flex items-baseline gap-2 border-b-2 pb-1 lg:block {% if dia.data == hoje %}border-rose-500 text-rose-700{% else %}border-slate-200{% endif %}">
+        <span class="font-semibold capitalize">{{ dia.data|date:"D" }}</span>
+        <span class="text-sm text-slate-500">{{ dia.data|date:"d/m" }}</span>
+      </a>
+      <div class="mt-2 space-y-2">
+        {% for item in dia.itens %}
+          {% include "agenda/_item.html" %}
+        {% empty %}
+          <p class="text-sm text-slate-400">{% if dia.expediente %}Livre{% else %}Sem expediente{% endif %}</p>
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+</div>
+{% endblock %}

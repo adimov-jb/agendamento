@@ -33,11 +33,9 @@ def test_painel_leva_gerente_para_area_do_gerente(cliente_gerente):
     assert response.url == reverse("core:gerente")
 
 
-def test_painel_mostra_area_do_profissional(client, profissional):
+def test_painel_leva_profissional_para_agenda(client, profissional):
     client.force_login(profissional.usuario)
-    response = client.get(reverse("core:painel"))
-    assert response.status_code == 200
-    assert "Minha agenda" in response.content.decode()
+    assert client.get(reverse("core:painel")).url == reverse("agenda:dia")
 
 
 def test_superusuario_conta_como_gerente(client, django_user_model):

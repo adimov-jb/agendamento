@@ -14,11 +14,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     "django_htmx",
     "core",
     "clinica",
     "catalogo",
     "equipe",
+    "agenda",
 ]
 
 MIDDLEWARE = [

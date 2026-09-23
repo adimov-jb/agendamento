@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Bloqueios · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Bloqueios</h1>
+<p class="mt-1 text-slate-600">Folgas, férias e compromissos. Nenhum cliente consegue agendar nesses períodos.</p>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <form method="post" class="cartao space-y-5 self-start p-5 sm:p-6">
+    {% csrf_token %}
+    <h2 class="text-lg font-semibold">Novo bloqueio</h2>
+    {% for erro in form.non_field_errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
+    <div class="grid grid-cols-2 gap-4">
+      {% include "partials/campo.html" with campo=form.data_inicio %}
+      {% include "partials/campo.html" with campo=form.hora_inicio %}
+      {% include "partials/campo.html" with campo=form.data_fim %}
+      {% include "partials/campo.html" with campo=form.hora_fim %}
+    </div>
+    <p class="text-sm text-slate-500">Deixe os horários em branco para bloquear o dia inteiro.</p>
+    {% include "partials/campo.html" with campo=form.motivo %}
+    <p class="text-sm text-slate-500">Agendamentos no período serão marcados como “precisa reagendar”.</p>
+    <button type="submit" class="btn-primario w-full">Bloquear</button>
+  </form>
+
+  <section>
+    <h2 class="text-lg font-semibold">Próximos bloqueios</h2>
+    <ul class="mt-3 space-y-2">
+      {% for b in bloqueios %}
+        <li class="cartao flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <div class="min-w-0">
+            <p class="font-medium">{{ b.periodo_legivel }}</p>
+            <p class="text-sm text-slate-500">{% if b.geral %}Clínica fechada{% endif %}{% if b.geral and b.motivo %} · {% endif %}{{ b.motivo }}</p>
+          </div>
+          {% if not b.geral %}
+            <form method="post" action="{% url 'agenda:excluir_bloqueio' b.pk %}" onsubmit="return confirm('Remover este bloqueio?')">
+              {% csrf_token %}
+              <button class="btn-pequeno">Remover</button>
+            </form>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="text-slate-500">Nenhum bloqueio futuro.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

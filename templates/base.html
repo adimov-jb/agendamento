@@ -40,6 +40,22 @@
         </div>
       </nav>
     {% endif %}
+    {% if eh_profissional %}
+      <nav class="border-t border-slate-100">
+        <div class="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 text-sm">
+          {% url 'agenda:dia' as url_dia %}
+          {% url 'agenda:semana' as url_semana %}
+          {% url 'agenda:horarios' as url_horarios %}
+          {% url 'agenda:bloqueios' as url_bloqueios %}
+          {% with p=request.path %}
+            <a href="{{ url_dia }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_dia or '/agenda/agendamentos/' in p or '/agenda/novo/' in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Minha agenda</a>
+            <a href="{{ url_semana }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_semana %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Semana</a>
+            <a href="{{ url_horarios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_horarios %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Horários de trabalho</a>
+            <a href="{{ url_bloqueios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_bloqueios in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Bloqueios</a>
+          {% endwith %}
+        </div>
+      </nav>
+    {% endif %}
   </header>
 
   <main class="mx-auto max-w-5xl px-4 py-6">

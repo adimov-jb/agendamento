@@ -25,6 +25,7 @@ Acesse http://localhost:8000 (ou a porta definida em `WEB_PORT` no `.env`).
 | `clinica` | Configuração da clínica (regras de agendamento) e horário de funcionamento |
 | `catalogo` | Procedimentos, tipos de recurso e recursos (salas/equipamentos) |
 | `equipe` | Profissionais e seus logins |
+| `agenda` | Clientes, horários de trabalho, bloqueios, agendamentos e o cálculo de disponibilidade (`agenda/servicos.py`) |
 
 ## Dia a dia
 

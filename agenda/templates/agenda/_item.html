@@ -1,0 +1,17 @@
+{% if item.tipo == "agendamento" %}{% with a=item.obj %}
+  <a href="{% url 'agenda:detalhe' a.pk %}"
+     class="block rounded-lg border-l-4 bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200 hover:ring-rose-300
+            {% if a.status == 'precisa_reagendar' %}border-amber-400{% elif a.status == 'atendido' %}border-emerald-400{% elif a.status == 'faltou' %}border-red-400{% else %}border-rose-500{% endif %}">
+    <div class="flex flex-wrap items-center justify-between gap-x-2">
+      <span class="font-semibold">{{ a.inicio|time:"H:i" }}–{{ a.fim_atendimento|time:"H:i" }}</span>
+      {% if a.status != 'agendado' %}{% include "agenda/_status.html" with status=a.status rotulo=a.get_status_display %}{% endif %}
+    </div>
+    <p class="truncate">{{ a.cliente.nome }}</p>
+    <p class="truncate text-sm text-slate-500">{{ a.procedimento.nome }}</p>
+  </a>
+{% endwith %}{% else %}{% with b=item.obj %}
+  <div class="rounded-lg border border-dashed border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-600">
+    <p class="font-medium">{% if b.geral %}Clínica fechada{% else %}Bloqueado{% endif %}{% if b.motivo %} · {{ b.motivo }}{% endif %}</p>
+    <p>{{ b.periodo_legivel }}</p>
+  </div>
+{% endwith %}{% endif %}

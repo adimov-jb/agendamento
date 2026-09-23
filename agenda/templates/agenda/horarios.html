@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Horários de trabalho · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Horários de trabalho</h1>
+<p class="mt-1 text-slate-600">Marque os dias em que você atende. Use o segundo período para pausas, como o almoço (ex.: 09:00–12:00 e 13:00–18:00).</p>
+
+<form method="post" class="mt-6 space-y-6">
+  {% csrf_token %}
+  <div class="cartao divide-y divide-slate-100">
+    {% for f in formularios %}
+      <div class="px-4 py-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <label class="flex items-center gap-2 font-medium">{{ f.trabalha }} {{ f.nome_dia }}</label>
+          <span class="text-xs text-slate-500">
+            {% if f.clinica %}Clínica: {{ f.clinica.inicio|time:"H:i" }}–{{ f.clinica.fim|time:"H:i" }}{% else %}Clínica fechada{% endif %}
+          </span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <label class="text-xs text-slate-500">Início {{ f.inicio1 }}</label>
+          <label class="text-xs text-slate-500">Fim {{ f.fim1 }}</label>
+          <label class="text-xs text-slate-500">Volta (opcional) {{ f.inicio2 }}</label>
+          <label class="text-xs text-slate-500">Fim (opcional) {{ f.fim2 }}</label>
+        </div>
+        {% for erro in f.non_field_errors %}<p class="mt-2 text-sm text-red-600">{{ erro }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-sm text-slate-500">Agendamentos futuros que ficarem fora do novo horário serão marcados como “precisa reagendar”.</p>
+  <div class="flex justify-end">
+    <button type="submit" class="btn-primario w-full sm:w-auto">Salvar horários</button>
+  </div>
+</form>
+{% endblock %}

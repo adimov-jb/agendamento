@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -24,7 +25,9 @@ def painel(request):
     """Destino após o login: cada perfil vai para a sua área."""
     if eh_gerente(request.user):
         return redirect("core:gerente")
-    return render(request, "core/profissional_inicio.html")
+    if hasattr(request.user, "profissional"):
+        return redirect("agenda:dia")
+    raise PermissionDenied
 
 
 @gerente_required
