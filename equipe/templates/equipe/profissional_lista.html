@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Profissionais · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-bold">Profissionais</h1>
+  <a href="{% url 'equipe:profissional_novo' %}" class="btn-primario">Novo profissional</a>
+</div>
+
+{% if profissionais %}
+  <ul class="cartao mt-6 divide-y divide-slate-100">
+    {% for profissional in profissionais %}{% include "equipe/_profissional_linha.html" %}{% endfor %}
+  </ul>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum profissional cadastrado ainda.</p>
+{% endif %}
+{% endblock %}

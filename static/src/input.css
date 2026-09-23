@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .btn-primario {
+    @apply inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2;
+  }
+  .btn-secundario {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50;
+  }
+  .btn-pequeno {
+    @apply inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50;
+  }
+  .cartao {
+    @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200;
+  }
+  .selo-inativo {
+    @apply ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500;
+  }
+}

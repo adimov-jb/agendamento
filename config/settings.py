@@ -16,6 +16,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_htmx",
     "core",
+    "clinica",
+    "catalogo",
+    "equipe",
 ]
 
 MIDDLEWARE = [
@@ -80,5 +83,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Nome provisório do app; será movido para a configuração da clínica.
-APP_NAME = os.environ.get("APP_NAME", "Agendamento")
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "core:painel"
+LOGOUT_REDIRECT_URL = "core:home"

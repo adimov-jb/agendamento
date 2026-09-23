@@ -1,0 +1,13 @@
+<div>
+  {% if campo.widget_type == "checkbox" %}
+    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">{{ campo }} {{ campo.label }}</label>
+  {% elif campo.widget_type == "checkboxselectmultiple" %}
+    <p class="text-sm font-medium text-slate-700">{{ campo.label }}</p>
+    <div class="mt-2 grid gap-2 sm:grid-cols-2 [&_label]:flex [&_label]:items-center [&_label]:gap-2">{{ campo }}</div>
+  {% else %}
+    <label for="{{ campo.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ campo.label }}</label>
+    <div class="mt-1">{{ campo }}</div>
+  {% endif %}
+  {% if campo.help_text %}<p class="mt-1 text-sm text-slate-500">{{ campo.help_text }}</p>{% endif %}
+  {% for erro in campo.errors %}<p class="mt-1 text-sm text-red-600">{{ erro }}</p>{% endfor %}
+</div>

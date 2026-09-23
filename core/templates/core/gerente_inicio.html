@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Painel do gerente</h1>
+
+<div class="cartao mt-6 p-5 text-slate-600">
+  <p class="font-medium text-slate-800">Agenda do dia</p>
+  <p class="mt-1 text-sm">Em breve: a agenda de todos os profissionais aparecerá aqui.</p>
+</div>
+
+<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <a href="{% url 'equipe:profissionais' %}" class="cartao p-5 hover:ring-rose-300">
+    <p class="text-3xl font-bold text-rose-600">{{ contagens.profissionais }}</p>
+    <p class="mt-1 text-slate-600">Profissionais ativos</p>
+  </a>
+  <a href="{% url 'catalogo:procedimentos' %}" class="cartao p-5 hover:ring-rose-300">
+    <p class="text-3xl font-bold text-rose-600">{{ contagens.procedimentos }}</p>
+    <p class="mt-1 text-slate-600">Procedimentos ativos</p>
+  </a>
+  <a href="{% url 'catalogo:recursos' %}" class="cartao p-5 hover:ring-rose-300">
+    <p class="text-3xl font-bold text-rose-600">{{ contagens.recursos }}</p>
+    <p class="mt-1 text-slate-600">Salas e equipamentos</p>
+  </a>
+  <a href="{% url 'clinica:configuracoes' %}" class="cartao p-5 hover:ring-rose-300">
+    <p class="text-3xl font-bold text-rose-600">⚙</p>
+    <p class="mt-1 text-slate-600">Horário e regras da clínica</p>
+  </a>
+</div>
+{% endblock %}

@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./templates/**/*.html", "./*/templates/**/*.html"],
+  // *.py inclui classes aplicadas em formulários (core/forms.py)
+  content: ["./templates/**/*.html", "./*/templates/**/*.html", "./*/*.py"],
   theme: {
     extend: {},
   },

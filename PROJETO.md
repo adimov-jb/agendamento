@@ -50,7 +50,7 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
 
 ### 3.3 Gerente (com login)
 - **Cadastros** (criar, alterar, inativar):
-  - Profissionais, com os procedimentos que cada um realiza **[suposição: definido pelo gerente]**
+  - Profissionais, com os procedimentos que cada um realiza (definidos pelo gerente). Ao cadastrar, o gerente define o e-mail de login e uma senha inicial. Inativar o profissional bloqueia o login.
   - Procedimentos: nome, duração, intervalo, preço e recursos necessários
   - Tipos de recurso e recursos (salas e equipamentos)
 - **Age em qualquer agenda**: cria, move e cancela agendamentos de qualquer profissional. Também faz o papel de recepção; **não existe perfil de recepcionista**.

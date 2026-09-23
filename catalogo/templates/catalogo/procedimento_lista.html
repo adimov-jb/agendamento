@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Procedimentos · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-bold">Procedimentos</h1>
+  <a href="{% url 'catalogo:procedimento_novo' %}" class="btn-primario">Novo procedimento</a>
+</div>
+
+{% if procedimentos %}
+  <ul class="cartao mt-6 divide-y divide-slate-100">
+    {% for procedimento in procedimentos %}{% include "catalogo/_procedimento_linha.html" %}{% endfor %}
+  </ul>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum procedimento cadastrado ainda.</p>
+{% endif %}
+{% endblock %}

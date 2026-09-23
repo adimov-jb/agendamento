@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Clínica · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Configurações da clínica</h1>
+
+<form method="post" class="mt-6 space-y-6">
+  {% csrf_token %}
+
+  <section class="cartao space-y-5 p-5 sm:p-6">
+    <h2 class="text-lg font-semibold">Regras de agendamento</h2>
+    <div class="grid gap-5 sm:grid-cols-2">
+      {% for campo in form %}{% include "partials/campo.html" %}{% endfor %}
+    </div>
+  </section>
+
+  <section class="cartao p-5 sm:p-6">
+    <h2 class="text-lg font-semibold">Horário de funcionamento</h2>
+    <p class="mt-1 text-sm text-slate-500">Os horários de trabalho dos profissionais precisam ficar dentro deste horário. Dias desmarcados ficam fechados.</p>
+
+    <div class="mt-4 divide-y divide-slate-100">
+      {% for h in horarios %}
+        <div class="grid grid-cols-2 items-center gap-3 py-3 sm:grid-cols-[12rem_1fr_1fr]">
+          <label class="col-span-2 flex items-center gap-2 font-medium sm:col-span-1">{{ h.aberto }} {{ h.nome_dia }}</label>
+          <label class="text-xs text-slate-500">Abre {{ h.inicio }}</label>
+          <label class="text-xs text-slate-500">Fecha {{ h.fim }}</label>
+          {% for erro in h.non_field_errors %}
+            <p class="col-span-2 text-sm text-red-600 sm:col-span-3">{{ erro }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="flex justify-end">
+    <button type="submit" class="btn-primario w-full sm:w-auto">Salvar configurações</button>
+  </div>
+</form>
+{% endblock %}

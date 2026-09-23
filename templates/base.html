@@ -9,12 +9,47 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header class="bg-white border-b border-slate-200">
-    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-      <a href="{% url 'core:home' %}" class="text-lg font-semibold text-rose-600">{{ APP_NAME }}</a>
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+      <a href="{% if user.is_authenticated %}{% url 'core:painel' %}{% else %}{% url 'core:home' %}{% endif %}"
+         class="truncate text-lg font-semibold text-rose-600">{{ APP_NAME }}</a>
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}" class="flex shrink-0 items-center gap-3">
+          {% csrf_token %}
+          <span class="hidden text-sm text-slate-500 sm:inline">{{ user.email|default:user.username }}</span>
+          <button type="submit" class="btn-pequeno">Sair</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="shrink-0 text-sm text-slate-600 hover:text-rose-600">Área da equipe</a>
+      {% endif %}
     </div>
+    {% if eh_gerente %}
+      <nav class="border-t border-slate-100">
+        <div class="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 text-sm">
+          {% url 'core:gerente' as url_inicio %}
+          {% url 'equipe:profissionais' as url_profissionais %}
+          {% url 'catalogo:procedimentos' as url_procedimentos %}
+          {% url 'catalogo:recursos' as url_recursos %}
+          {% url 'clinica:configuracoes' as url_clinica %}
+          {% with p=request.path %}
+            <a href="{{ url_inicio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_inicio %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Início</a>
+            <a href="{{ url_profissionais }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_profissionais in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Profissionais</a>
+            <a href="{{ url_procedimentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_procedimentos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Procedimentos</a>
+            <a href="{{ url_recursos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_recursos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Salas e equipamentos</a>
+            <a href="{{ url_clinica }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_clinica in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Clínica</a>
+          {% endwith %}
+        </div>
+      </nav>
+    {% endif %}
   </header>
 
   <main class="mx-auto max-w-5xl px-4 py-6">
+    {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+          <p class="rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-emerald-50 text-emerald-800{% endif %}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>

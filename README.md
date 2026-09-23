@@ -12,7 +12,19 @@ docker compose up -d --build
 docker compose exec web python manage.py createsuperuser
 ```
 
-Acesse http://localhost:8000 (ou a porta definida em `WEB_PORT` no `.env`). O admin fica em `/admin/`.
+Acesse http://localhost:8000 (ou a porta definida em `WEB_PORT` no `.env`).
+
+- **Área da equipe:** `/entrar/`. O superusuário conta como gerente. Outros gerentes são usuários no grupo "Gerente" (via `/admin/`).
+- **Profissionais:** o gerente os cadastra em *Profissionais*, definindo o e-mail e a senha inicial de cada um.
+
+## Estrutura
+
+| App | Conteúdo |
+|---|---|
+| `core` | Layout, login, permissões (`eh_gerente`), painel inicial |
+| `clinica` | Configuração da clínica (regras de agendamento) e horário de funcionamento |
+| `catalogo` | Procedimentos, tipos de recurso e recursos (salas/equipamentos) |
+| `equipe` | Profissionais e seus logins |
 
 ## Dia a dia
 

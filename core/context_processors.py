@@ -1,5 +1,10 @@
-from django.conf import settings
+from clinica.models import Configuracao
+
+from .permissions import eh_gerente
 
 
 def app(request):
-    return {"APP_NAME": settings.APP_NAME}
+    return {
+        "APP_NAME": Configuracao.atual().nome_clinica,
+        "eh_gerente": eh_gerente(request.user),
+    }

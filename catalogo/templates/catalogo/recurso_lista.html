@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Salas e equipamentos · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-bold">Salas e equipamentos</h1>
+  <a href="{% url 'catalogo:tipo_novo' %}" class="btn-primario">Novo tipo</a>
+</div>
+<p class="mt-2 text-sm text-slate-500">Agrupe os recursos por tipo (ex.: tipo “Sala” com Sala 1, Sala 2). Os procedimentos dizem de quantas unidades de cada tipo precisam, e o sistema escolhe uma livre.</p>
+
+{% for tipo in tipos %}
+  <section class="cartao mt-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+      <h2 class="font-semibold">
+        {{ tipo.nome }}
+        <a href="{% url 'catalogo:tipo_editar' tipo.pk %}" class="ml-2 text-sm font-normal text-slate-500 hover:text-rose-600">renomear</a>
+      </h2>
+      <a href="{% url 'catalogo:recurso_novo' %}?tipo={{ tipo.pk }}" class="btn-pequeno">Adicionar unidade</a>
+    </div>
+    {% if tipo.recursos.all %}
+      <ul class="divide-y divide-slate-100">
+        {% for recurso in tipo.recursos.all %}{% include "catalogo/_recurso_linha.html" %}{% endfor %}
+      </ul>
+    {% else %}
+      <p class="px-4 py-3 text-sm text-slate-500">Nenhuma unidade cadastrada.</p>
+    {% endif %}
+  </section>
+{% empty %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum tipo de recurso cadastrado ainda.</p>
+{% endfor %}
+{% endblock %}
