@@ -51,6 +51,41 @@ def test_pagina_de_reserva(client, ana, limpeza):
     assert response.context["profissional_escolhido"] == ana
 
 
+def test_pagina_de_reserva_ja_escolhe_o_primeiro_dia_livre(client, ana, limpeza):
+    response = client.get(reverse("publico:reservar", args=[limpeza.pk]))
+    dia = response.context["escolhida"]
+    assert dia.weekday() == 0  # Ana só atende às segundas
+    assert response.context["horarios"]
+    assert f'value="{dia.isoformat()}"' in response.content.decode()
+
+
+def test_calendario_so_oferece_dias_com_horario_livre(client, ana, limpeza, segunda):
+    url = reverse("publico:calendario", args=[limpeza.pk])
+    response = client.get(url, {"profissional": ana.pk, "mes": segunda.isoformat()})
+    html = response.content.decode()
+    assert f'name="data" value="{segunda.isoformat()}"' in html
+    terca = segunda + timedelta(days=1)
+    assert f'value="{terca.isoformat()}"' not in html
+    # Navegar entre meses não escolhe dia: os horários voltam a pedir um dia
+    assert response.context["escolhida"] is None
+    assert "Escolha um dia no calendário" in html
+
+
+def test_calendario_respeita_antecedencia_maxima(client, ana, limpeza):
+    Configuracao.objects.update(antecedencia_maxima_dias=0)
+    hoje = timezone.localdate()
+    response = client.get(reverse("publico:calendario", args=[limpeza.pk]), {"profissional": ana.pk})
+    assert response.context["mes_seguinte"] is None
+    assert response.context["mes_anterior"] is None
+    assert all(c["dia"] == hoje for semana in response.context["semanas"] for c in semana if c["livre"])
+
+
+def test_trocar_profissional_escolhe_o_primeiro_dia_livre(client, ana, bia, limpeza):
+    response = client.get(reverse("publico:calendario", args=[limpeza.pk]), {"profissional": bia.pk})
+    assert response.context["escolhida"] is not None
+    assert 'id="horarios" hx-swap-oob="true"' in response.content.decode()
+
+
 def test_horarios_do_cliente_respeitam_antecedencia(client, ana, limpeza, segunda):
     url = reverse("publico:horarios", args=[limpeza.pk])
     html = client.get(url, {"profissional": ana.pk, "data": segunda.isoformat()}).content.decode()

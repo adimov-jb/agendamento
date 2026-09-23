@@ -1,3 +1,4 @@
+import calendar
 from datetime import date, timedelta
 
 from django.contrib import messages
@@ -19,6 +20,8 @@ from . import acesso
 from .forms import AcessoForm, ReservaForm
 
 Status = Agendamento.Status
+
+MENSAGEM_SEM_DIA = "Escolha um dia no calendário para ver os horários livres."
 
 
 def _procedimentos_disponiveis():
@@ -59,17 +62,50 @@ def _horarios_para_reserva(procedimento, profissional, data):
     return servicos.horarios_disponiveis(profissional, procedimento, data, respeitar_antecedencia=True)
 
 
+def _dias_livres(procedimento, profissional, inicio, fim):
+    """Dias entre `inicio` e `fim` (dentro da janela do cliente) com pelo menos um horário livre."""
+    data_minima, data_maxima = _janela()
+    dia, fim = max(inicio, data_minima), min(fim, data_maxima)
+    while dia <= fim:
+        if _horarios_para_reserva(procedimento, profissional, dia):
+            yield dia
+        dia += timedelta(days=1)
+
+
+def _primeiro_dia_livre(procedimento, profissional):
+    if profissional is None:
+        return None
+    return next(_dias_livres(procedimento, profissional, *_janela()), None)
+
+
+def _calendario(procedimento, profissional, mes, escolhida):
+    """Contexto do calendário do mês de `mes`: só os dias com horário livre podem ser escolhidos."""
+    mes = mes.replace(day=1)
+    ultimo = mes.replace(day=calendar.monthrange(mes.year, mes.month)[1])
+    livres = set(_dias_livres(procedimento, profissional, mes, ultimo)) if profissional else set()
+    data_minima, data_maxima = _janela()
+    anterior, seguinte = (mes - timedelta(days=1)).replace(day=1), ultimo + timedelta(days=1)
+    return {
+        "mes": mes,
+        "semanas": [
+            [{"dia": dia, "no_mes": dia.month == mes.month, "livre": dia in livres} for dia in semana]
+            for semana in calendar.Calendar(firstweekday=calendar.SUNDAY).monthdatescalendar(mes.year, mes.month)
+        ],
+        "tem_dia_livre": bool(livres),
+        "escolhida": escolhida,
+        "mes_anterior": anterior if anterior >= data_minima.replace(day=1) else None,
+        "mes_seguinte": seguinte if seguinte <= data_maxima else None,
+    }
+
+
 def reservar(request, pk):
     procedimento = get_object_or_404(_procedimentos_disponiveis(), pk=pk)
     profissionais = procedimento.profissionais.filter(ativo=True)
-    data_minima, data_maxima = _janela()
 
     form = ReservaForm(
         request.POST or None,
         profissionais=profissionais,
-        data_minima=data_minima,
-        data_maxima=data_maxima,
-        initial={"data": data_minima, "profissional": profissionais.first() if profissionais.count() == 1 else None},
+        initial={"profissional": profissionais.first() if profissionais.count() == 1 else None},
     )
     if request.method == "POST" and form.is_valid():
         dados = form.cleaned_data
@@ -105,7 +141,8 @@ def reservar(request, pk):
         profissional = _escolhido(profissionais, form.data.get("profissional"))
         data = _data(form.data.get("data"))
     else:
-        profissional, data = form.initial["profissional"], data_minima
+        profissional = form.initial["profissional"]
+        data = _primeiro_dia_livre(procedimento, profissional)
     return render(
         request,
         "publico/reservar.html",
@@ -116,6 +153,30 @@ def reservar(request, pk):
             "profissional_escolhido": profissional,
             "horarios": _horarios_para_reserva(procedimento, profissional, data),
             "escolhido": form.data.get("inicio"),
+            **_calendario(procedimento, profissional, data or _janela()[0], data),
+        },
+    )
+
+
+def calendario(request, pk):
+    """Fragmento HTMX com o calendário e, fora da banda, os horários livres.
+
+    Sem `mes` (troca de profissional), já escolhe o primeiro dia livre.
+    Com `mes` (navegação entre meses), nenhum dia fica escolhido.
+    """
+    procedimento = get_object_or_404(_procedimentos_disponiveis(), pk=pk)
+    profissional = _escolhido(procedimento.profissionais.filter(ativo=True), request.GET.get("profissional"))
+    mes = _data(request.GET.get("mes"))
+    data = None if mes else _primeiro_dia_livre(procedimento, profissional)
+    return render(
+        request,
+        "publico/_calendario.html",
+        {
+            "procedimento": procedimento,
+            "profissional_escolhido": profissional,
+            "horarios": _horarios_para_reserva(procedimento, profissional, data),
+            "atualizar_horarios": True,
+            **_calendario(procedimento, profissional, mes or data or _janela()[0], data),
         },
     )
 
@@ -128,7 +189,7 @@ def horarios(request, pk):
     return render(
         request,
         "agenda/_horarios_livres.html",
-        {"horarios": horarios, "mensagem_vazia": "Escolha o profissional e a data para ver os horários livres."},
+        {"horarios": horarios, "mensagem_vazia": MENSAGEM_SEM_DIA},
     )
 
 

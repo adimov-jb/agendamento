@@ -7,6 +7,7 @@ app_name = "publico"
 urlpatterns = [
     path("agendar/<int:pk>/", views.reservar, name="reservar"),
     path("agendar/<int:pk>/horarios/", views.horarios, name="horarios"),
+    path("agendar/<int:pk>/calendario/", views.calendario, name="calendario"),
     path("agendar/confirmado/", views.confirmado, name="confirmado"),
     path("meus-agendamentos/", views.meus, name="meus"),
     path("meus-agendamentos/sair/", views.sair, name="sair"),

@@ -1,0 +1,42 @@
+{% if profissional_escolhido is None %}
+  <p class="text-sm text-slate-500">Escolha o profissional para ver os dias livres.</p>
+{% else %}
+  <div class="max-w-sm">
+    <div class="flex items-center justify-between">
+      {% url 'publico:calendario' procedimento.pk as url_calendario %}
+      <button type="button" class="btn-pequeno disabled:invisible" aria-label="Mês anterior"
+              {% if mes_anterior %}hx-get="{{ url_calendario }}?mes={{ mes_anterior.isoformat }}" hx-target="#calendario" hx-include="[name='profissional']"{% else %}disabled{% endif %}>←</button>
+      <p class="font-medium">{{ mes|date:"F \d\e Y" }}</p>
+      <button type="button" class="btn-pequeno disabled:invisible" aria-label="Próximo mês"
+              {% if mes_seguinte %}hx-get="{{ url_calendario }}?mes={{ mes_seguinte.isoformat }}" hx-target="#calendario" hx-include="[name='profissional']"{% else %}disabled{% endif %}>→</button>
+    </div>
+
+    <div class="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-500" aria-hidden="true">
+      <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+    </div>
+    <div class="mt-1 grid grid-cols-7 gap-1">
+      {% for semana in semanas %}
+        {% for c in semana %}
+          {% if c.livre %}
+            <label>
+              <input type="radio" name="data" value="{{ c.dia.isoformat }}" class="peer sr-only" required
+                     aria-label="{{ c.dia|date:'l, j \d\e F' }}" {% if c.dia == escolhida %}checked{% endif %}>
+              <span class="block cursor-pointer rounded-lg border border-rose-200 bg-rose-50 py-2 text-center text-sm font-semibold text-rose-800
+                           hover:border-rose-400 peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:text-white
+                           peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500">{{ c.dia.day }}</span>
+            </label>
+          {% else %}
+            <span class="block py-2 text-center text-sm text-slate-300 {% if not c.no_mes %}invisible{% endif %}" aria-hidden="true">{{ c.dia.day }}</span>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <p class="mt-2 text-sm text-slate-500">
+      {% if tem_dia_livre %}Os dias destacados têm horários livres.{% else %}Nenhum dia livre neste mês.{% endif %}
+    </p>
+  </div>
+{% endif %}
+
+{% if atualizar_horarios %}
+  <div id="horarios" hx-swap-oob="true">{% include "agenda/_horarios_livres.html" with mensagem_vazia="Escolha um dia no calendário para ver os horários livres." %}</div>
+{% endif %}

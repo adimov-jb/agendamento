@@ -13,8 +13,9 @@
     {% csrf_token %}
     {% for erro in form.non_field_errors %}<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ erro }}</p>{% endfor %}
 
-    <div hx-get="{% url 'publico:horarios' procedimento.pk %}" hx-trigger="change" hx-target="#horarios" hx-include="this" class="space-y-6">
-      <section class="cartao p-5 sm:p-6">
+    <div class="space-y-6">
+      <section class="cartao p-5 sm:p-6"
+               hx-get="{% url 'publico:calendario' procedimento.pk %}" hx-trigger="change" hx-target="#calendario" hx-include="this">
         <h2 class="text-lg font-semibold">1. Profissional</h2>
         <div class="mt-4 grid gap-2 sm:grid-cols-2">
           {% for p in profissionais %}
@@ -32,8 +33,12 @@
 
       <section class="cartao space-y-4 p-5 sm:p-6">
         <h2 class="text-lg font-semibold">2. Dia e horário</h2>
-        <div class="sm:w-1/2">{% include "partials/campo.html" with campo=form.data %}</div>
-        <div id="horarios">{% include "agenda/_horarios_livres.html" with mensagem_vazia="Escolha o profissional e a data para ver os horários livres." %}</div>
+        <div id="calendario" hx-get="{% url 'publico:horarios' procedimento.pk %}" hx-trigger="change[target.name == 'data']"
+             hx-target="#horarios" hx-include="[name='profissional'], [name='data']">
+          {% include "publico/_calendario.html" %}
+        </div>
+        {% for erro in form.data.errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
+        <div id="horarios">{% include "agenda/_horarios_livres.html" with mensagem_vazia="Escolha um dia no calendário para ver os horários livres." %}</div>
         {% for erro in form.inicio.errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
       </section>
     </div>

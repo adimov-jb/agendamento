@@ -47,10 +47,10 @@ class ReservaForm(IdentificacaoMixin, HorarioEscolhidoForm):
         error_messages={"required": "É preciso autorizar o uso dos dados para agendar."},
     )
 
-    def __init__(self, *args, profissionais, data_minima, data_maxima, **kwargs):
+    def __init__(self, *args, profissionais, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["profissional"].queryset = profissionais
-        self.fields["data"].widget.attrs.update(min=data_minima.isoformat(), max=data_maxima.isoformat())
+        self.fields["data"].error_messages["required"] = "Escolha um dia no calendário."
 
 
 class AcessoForm(IdentificacaoMixin, EstiloMixin, forms.Form):
