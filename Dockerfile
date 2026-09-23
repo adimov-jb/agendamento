@@ -24,7 +24,10 @@ RUN pip install -r requirements.txt
 
 COPY . .
 RUN tailwindcss -i static/src/input.css -o static/css/app.css --minify
+# Os valores são só para o settings carregar: o collectstatic não usa o banco nem a chave
+RUN DJANGO_SECRET_KEY=build POSTGRES_DB=build POSTGRES_USER=build POSTGRES_PASSWORD=build \
+    python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["sh", "iniciar.sh"]

@@ -65,6 +65,10 @@ DATABASES = {
         "PASSWORD": os.environ["POSTGRES_PASSWORD"],
         "HOST": os.environ.get("POSTGRES_HOST", "db"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        # Bancos gerenciados (ex.: Neon) exigem SSL: POSTGRES_SSLMODE=require
+        "OPTIONS": {"sslmode": os.environ.get("POSTGRES_SSLMODE", "prefer")},
+        # Pooler em modo transação (PgBouncer, host "-pooler" do Neon) não suporta cursores no servidor
+        "DISABLE_SERVER_SIDE_CURSORS": os.environ.get("POSTGRES_POOLER", "0") == "1",
     }
 }
 
@@ -83,9 +87,34 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+if not DEBUG:
+    # Nome do arquivo com hash do conteúdo: o navegador nunca usa um CSS antigo do cache
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "core:painel"
 LOGOUT_REDIRECT_URL = "core:home"
+
+# Produção atrás de proxy HTTPS (Render etc.): o proxy recebe o HTTPS e repassa em HTTP
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h not in ("localhost", "127.0.0.1")]
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# Quantos proxies confiáveis ficam na frente do app (Render: 1). Define de onde vem o IP real do
+# cliente, usado no limite de tentativas de "Meus agendamentos" (publico/acesso.py).
+PROXIES_CONFIAVEIS = int(os.environ.get("PROXIES_CONFIAVEIS", "0"))
+
+# Erros aparecem nos logs do servidor (em produção o Django não os mostra na página)
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+}

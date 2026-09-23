@@ -6,7 +6,7 @@ from django.urls import reverse
 from agenda.models import Agendamento, Cliente
 from agenda.servicos import agendar
 from agenda.tests.conftest import hora
-from publico.acesso import LIMITE_POR_TELEFONE
+from publico.acesso import LIMITE_POR_TELEFONE, ip_de
 
 pytestmark = pytest.mark.django_db
 
@@ -104,3 +104,18 @@ def test_horarios_de_remarcacao(cliente_logado, ana, segunda, marcar):
 def test_sair(cliente_logado):
     cliente_logado.post(reverse("publico:sair"))
     assert "Informe o telefone" in cliente_logado.get(reverse("publico:meus")).content.decode()
+
+
+@pytest.mark.parametrize(
+    "proxies,encaminhado,esperado",
+    [
+        (0, "1.1.1.1", "10.0.0.9"),  # sem proxy configurado: ignora o cabeçalho
+        (1, "6.6.6.6, 1.1.1.1", "1.1.1.1"),  # o primeiro pode ter sido inventado pelo cliente
+        (2, "6.6.6.6, 1.1.1.1, 2.2.2.2", "1.1.1.1"),
+        (1, "", "10.0.0.9"),
+    ],
+)
+def test_ip_do_cliente_atras_de_proxy(rf, settings, proxies, encaminhado, esperado):
+    settings.PROXIES_CONFIAVEIS = proxies
+    request = rf.get("/", REMOTE_ADDR="10.0.0.9", HTTP_X_FORWARDED_FOR=encaminhado)
+    assert ip_de(request) == esperado

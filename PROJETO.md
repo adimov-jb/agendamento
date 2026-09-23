@@ -223,6 +223,6 @@ agendado ──► atendido
 - [ ] Hospedagem de produção e domínio.
 
 ### Antes de colocar em produção
-- [ ] **IP real do cliente atrás de proxy:** o limite de tentativas usa `REMOTE_ADDR`. Atrás de um proxy reverso (Nginx, Render etc.), ajuste `publico/acesso.py::ip_de` para o cabeçalho confiável.
+- [x] **IP real do cliente atrás de proxy:** `publico/acesso.py::ip_de` usa o `X-Forwarded-For` conforme `PROXIES_CONFIAVEIS` (Render: 1).
 - [ ] **Proteção contra agendamentos em massa (spam):** não há captcha nem limite por IP na criação de agendamentos online.
-- [ ] **Configurações de segurança do Django:** `DEBUG=0`, `SECRET_KEY` forte, `ALLOWED_HOSTS`, HTTPS e cookies seguros.
+- [x] **Configurações de segurança do Django:** `DEBUG=0`, `SECRET_KEY` forte e `ALLOWED_HOSTS` por variável de ambiente; HTTPS atrás de proxy (`SECURE_PROXY_SSL_HEADER`), cookies seguros e `CSRF_TRUSTED_ORIGINS` em produção.

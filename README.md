@@ -48,3 +48,23 @@ O código é montado dentro do container: alterações em Python e templates rec
 - **web**: Django (runserver em desenvolvimento)
 - **db**: PostgreSQL 16 (dados persistem no volume `postgres_data`)
 - **tailwind**: compila o CSS em modo watch
+
+## Deploy (Render + Neon)
+
+A imagem de produção compila o CSS e coleta os estáticos no build. Ao iniciar ([iniciar.sh](iniciar.sh)), aplica as migrações, cria o primeiro gerente (se `GERENTE_EMAIL`/`GERENTE_SENHA` estiverem definidos) e sobe o gunicorn na porta `PORT`.
+
+No Render: **New → Web Service**, escolha o repositório, runtime **Docker**, e defina as variáveis:
+
+| Variável | Valor |
+|---|---|
+| `DJANGO_SECRET_KEY` | chave aleatória longa (botão *Generate*) |
+| `DJANGO_DEBUG` | `0` |
+| `DJANGO_ALLOWED_HOSTS` | `seu-app.onrender.com` (e o domínio próprio, separados por vírgula) |
+| `POSTGRES_HOST` / `POSTGRES_PORT` | host do banco / `5432` |
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | da string de conexão `postgresql://USER:PASSWORD@HOST/DB` |
+| `POSTGRES_SSLMODE` | `require` (Neon) |
+| `POSTGRES_POOLER` | `1` só se usar o host com `-pooler` do Neon |
+| `PROXIES_CONFIAVEIS` | `1` |
+| `GERENTE_EMAIL` / `GERENTE_SENHA` | login do primeiro gerente (pode remover depois do primeiro deploy) |
+
+Em *Settings*, use `/health/` como **Health Check Path**.

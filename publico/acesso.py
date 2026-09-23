@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from functools import wraps
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -29,7 +30,15 @@ class DadosNaoConferem(Exception):
 
 
 def ip_de(request):
-    # Atrás de um proxy reverso, ajustar para o cabeçalho confiável (ex.: X-Forwarded-For)
+    """IP do cliente. Atrás de N proxies confiáveis, é o N-ésimo do fim do X-Forwarded-For.
+
+    Os anteriores podem ter sido inventados pelo próprio cliente; cada proxy confiável acrescenta o
+    endereço de quem se conectou a ele.
+    """
+    proxies = settings.PROXIES_CONFIAVEIS
+    encaminhados = [ip.strip() for ip in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",") if ip.strip()]
+    if proxies and len(encaminhados) >= proxies:
+        return encaminhados[-proxies]
     return request.META.get("REMOTE_ADDR", "")
 
 
