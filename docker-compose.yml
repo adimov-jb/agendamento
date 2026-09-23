@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    env_file: .env
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Recompila o CSS sempre que templates mudam. --poll é necessário porque
+  # eventos de arquivo do Windows não chegam ao container.
+  tailwind:
+    build: .
+    command: tailwindcss -i static/src/input.css -o static/css/app.css --watch --poll
+    volumes:
+      - .:/app
+    tty: true
+
+volumes:
+  postgres_data:
