@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda do dia · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold first-letter:uppercase">{{ data|date:"l" }}</h1>
+    <p class="text-slate-500">{{ data|date:"d \d\e F \d\e Y" }} · {{ total }} agendamento{{ total|pluralize }}</p>
+  </div>
+  <div class="flex w-full gap-2 sm:w-auto">
+    <a href="{% url 'agenda:gerente_semana' %}?data={{ data|date:'Y-m-d' }}" class="btn-secundario flex-1 sm:flex-none">Semana</a>
+    <a href="{% url 'agenda:gerente_novo' %}?data={{ data|date:'Y-m-d' }}" class="btn-primario flex-1 sm:flex-none">Novo agendamento</a>
+  </div>
+</div>
+
+<div class="mt-4 flex flex-wrap items-center gap-2">
+  <a href="?data={{ anterior|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Dia anterior">←</a>
+  <a href="?data={{ hoje|date:'Y-m-d' }}" class="btn-pequeno">Hoje</a>
+  <a href="?data={{ proximo|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Próximo dia">→</a>
+  <form method="get" class="ml-auto">
+    <input type="date" name="data" value="{{ data|date:'Y-m-d' }}" onchange="this.form.submit()"
+           class="rounded-lg border-slate-300 py-1.5 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500" aria-label="Ir para a data">
+  </form>
+</div>
+
+{% if pendencias %}
+  <a href="{% url 'agenda:gerente_pendencias' %}" class="mt-4 block rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100">
+    {{ pendencias }} agendamento{{ pendencias|pluralize }} precisa{{ pendencias|pluralize:"m" }} ser reagendado{{ pendencias|pluralize }}. Ver pendências →
+  </a>
+{% endif %}
+
+{% if colunas %}
+  {# Celular: profissionais empilhados. Telas maiores: uma coluna por profissional, com rolagem lateral se forem muitos. #}
+  <div class="mt-6 grid gap-6 md:flex md:gap-4 md:overflow-x-auto md:pb-2">
+    {% for coluna in colunas %}
+      <section class="min-w-0 md:w-64 md:shrink-0">
+        <div class="flex items-start justify-between gap-2 border-b-2 border-slate-200 pb-1">
+          <div class="min-w-0">
+            <h2 class="truncate font-semibold">{{ coluna.profissional.nome }}</h2>
+            <p class="text-xs text-slate-500">
+              {% for inicio, fim in coluna.expediente %}{{ inicio|time:"H:i" }}–{{ fim|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% empty %}Sem expediente{% endfor %}
+            </p>
+          </div>
+          <a href="{% url 'agenda:gerente_novo' %}?profissional={{ coluna.profissional.pk }}&data={{ data|date:'Y-m-d' }}"
+             class="shrink-0 text-sm text-rose-600 hover:underline" aria-label="Agendar com {{ coluna.profissional.nome }}">+ Agendar</a>
+        </div>
+        <div class="mt-2 space-y-2">
+          {% for item in coluna.itens %}
+            {% include "agenda/_item.html" %}
+          {% empty %}
+            <p class="text-sm text-slate-400">Nenhum agendamento.</p>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum profissional ativo. <a href="{% url 'equipe:profissional_novo' %}" class="text-rose-600 hover:underline">Cadastrar profissional</a></p>
+{% endif %}
+{% endblock %}

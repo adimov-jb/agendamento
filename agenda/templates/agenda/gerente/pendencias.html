@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}Pendências · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Pendências</h1>
+<p class="mt-1 text-slate-600">Agendamentos atingidos por bloqueios ou mudanças de horário. Combine um novo horário com o cliente e remarque, ou cancele.</p>
+
+{% if agendamentos %}
+  <ul class="mt-6 space-y-3">
+    {% for a in agendamentos %}
+      <li class="cartao flex flex-wrap items-center justify-between gap-3 border-l-4 border-amber-400 px-4 py-3">
+        <div class="min-w-0">
+          <p class="font-medium">{{ a.cliente.nome }} · <a href="tel:{{ a.cliente.telefone }}" class="text-rose-600 hover:underline">{{ a.cliente.telefone|telefone }}</a></p>
+          <p class="text-sm text-slate-500">
+            {{ a.procedimento.nome }} com {{ a.profissional.nome }} · era <span class="capitalize">{{ a.inicio|date:"D" }}</span> {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <a href="{% url 'agenda:detalhe' a.pk %}" class="btn-pequeno">Detalhes</a>
+          <a href="{% url 'agenda:remarcar' a.pk %}" class="btn-pequeno border-rose-300 text-rose-700">Remarcar</a>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhuma pendência. 🎉</p>
+{% endif %}
+{% endblock %}

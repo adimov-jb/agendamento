@@ -2,7 +2,7 @@ from datetime import time, timedelta
 
 from django import forms
 
-from core.forms import EstiloMixin
+from core.forms import CLASSE_CAMPO, EstiloMixin
 
 from .servicos import momento
 from .telefone import normalizar_telefone
@@ -21,6 +21,18 @@ class HorarioEscolhidoForm(EstiloMixin, forms.Form):
 
     data = campo_data(label="Data")
     inicio = forms.DateTimeField(label="Horário", error_messages={"required": "Escolha um horário."})
+
+
+class RemarcarForm(HorarioEscolhidoForm):
+    """Com `profissionais`, permite também trocar o profissional (uso do gerente)."""
+
+    def __init__(self, *args, profissionais=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if profissionais is not None:
+            self.fields["profissional"] = forms.ModelChoiceField(
+                label="Profissional", queryset=profissionais, empty_label=None
+            )
+            self.fields["profissional"].widget.attrs["class"] = CLASSE_CAMPO
 
 
 class AgendamentoForm(HorarioEscolhidoForm):

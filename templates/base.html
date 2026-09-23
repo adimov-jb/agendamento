@@ -25,13 +25,17 @@
     {% if eh_gerente %}
       <nav class="border-t border-slate-100">
         <div class="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 text-sm">
-          {% url 'core:gerente' as url_inicio %}
+          {% url 'agenda:gerente_dia' as url_inicio %}
+          {% url 'agenda:gerente_pendencias' as url_pendencias %}
+          {% url 'agenda:gerente_bloqueios' as url_fechamentos %}
           {% url 'equipe:profissionais' as url_profissionais %}
           {% url 'catalogo:procedimentos' as url_procedimentos %}
           {% url 'catalogo:recursos' as url_recursos %}
           {% url 'clinica:configuracoes' as url_clinica %}
           {% with p=request.path %}
-            <a href="{{ url_inicio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_inicio %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Início</a>
+            <a href="{{ url_inicio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_inicio or '/gerente/agenda/' in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Agenda</a>
+            <a href="{{ url_pendencias }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_pendencias %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Pendências{% if pendencias %} <span class="ml-1 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-white">{{ pendencias }}</span>{% endif %}</a>
+            <a href="{{ url_fechamentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_fechamentos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Feriados</a>
             <a href="{{ url_profissionais }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_profissionais in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Profissionais</a>
             <a href="{{ url_procedimentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_procedimentos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Procedimentos</a>
             <a href="{{ url_recursos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_recursos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Salas e equipamentos</a>

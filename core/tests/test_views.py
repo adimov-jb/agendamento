@@ -30,7 +30,7 @@ def test_painel_exige_login(client):
 
 def test_painel_leva_gerente_para_area_do_gerente(cliente_gerente):
     response = cliente_gerente.get(reverse("core:painel"))
-    assert response.url == reverse("core:gerente")
+    assert response.url == reverse("agenda:gerente_dia")
 
 
 def test_painel_leva_profissional_para_agenda(client, profissional):
@@ -41,12 +41,12 @@ def test_painel_leva_profissional_para_agenda(client, profissional):
 def test_superusuario_conta_como_gerente(client, django_user_model):
     admin = django_user_model.objects.create_superuser("admin", "admin@clinica.com", "x")
     client.force_login(admin)
-    assert client.get(reverse("core:gerente")).status_code == 200
+    assert client.get(reverse("agenda:gerente_dia")).status_code == 200
 
 
 @pytest.mark.parametrize(
     "rota",
-    ["core:gerente", "equipe:profissionais", "catalogo:procedimentos", "catalogo:recursos", "clinica:configuracoes"],
+    ["agenda:gerente_dia", "equipe:profissionais", "catalogo:procedimentos", "catalogo:recursos", "clinica:configuracoes"],
 )
 def test_area_do_gerente_bloqueada(client, profissional, rota):
     url = reverse(rota)

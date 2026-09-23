@@ -4,10 +4,7 @@ from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
-from catalogo.models import Procedimento, Recurso
-from equipe.models import Profissional
-
-from .permissions import eh_gerente, gerente_required
+from .permissions import eh_gerente
 
 
 def home(request):
@@ -24,17 +21,7 @@ def health(request):
 def painel(request):
     """Destino após o login: cada perfil vai para a sua área."""
     if eh_gerente(request.user):
-        return redirect("core:gerente")
+        return redirect("agenda:gerente_dia")
     if hasattr(request.user, "profissional"):
         return redirect("agenda:dia")
     raise PermissionDenied
-
-
-@gerente_required
-def gerente_inicio(request):
-    contagens = {
-        "profissionais": Profissional.objects.filter(ativo=True).count(),
-        "procedimentos": Procedimento.objects.filter(ativo=True).count(),
-        "recursos": Recurso.objects.filter(ativo=True).count(),
-    }
-    return render(request, "core/gerente_inicio.html", {"contagens": contagens})

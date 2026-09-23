@@ -4,9 +4,24 @@
 
 {% block content %}
 <div class="mx-auto max-w-2xl">
-  <a href="{% url 'agenda:dia' %}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
+  <a href="{{ url_retorno }}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
   <h1 class="mt-2 text-2xl font-bold">Novo agendamento</h1>
 
+  {% if profissionais is not None %}
+    {# Gerente: escolher o profissional recarrega a página com os procedimentos dele #}
+    <form method="get" class="cartao mt-6 p-5 sm:p-6">
+      <input type="hidden" name="data" value="{{ data|date:'Y-m-d' }}">
+      <label class="block text-sm font-medium text-slate-700" for="escolha-profissional">Profissional</label>
+      <select id="escolha-profissional" name="profissional" onchange="this.form.submit()"
+              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500">
+        <option value="">Escolha…</option>
+        {% for p in profissionais %}<option value="{{ p.pk }}" {% if p == profissional %}selected{% endif %}>{{ p.nome }}</option>{% endfor %}
+      </select>
+      <noscript><button class="btn-pequeno mt-3">Continuar</button></noscript>
+    </form>
+  {% endif %}
+
+  {% if form %}
   <form method="post" class="mt-6 space-y-6">
     {% csrf_token %}
     {% for erro in form.non_field_errors %}<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ erro }}</p>{% endfor %}
@@ -14,10 +29,14 @@
     <section class="cartao space-y-5 p-5 sm:p-6">
       <h2 class="text-lg font-semibold">Procedimento e horário</h2>
       {% if not form.procedimento.field.queryset.exists %}
-        <p class="text-sm text-amber-700">Você ainda não tem procedimentos. Peça ao gerente para vinculá-los ao seu cadastro.</p>
+        <p class="text-sm text-amber-700">
+          {% if profissionais is not None %}{{ profissional.nome }} ainda não tem procedimentos. Vincule-os no cadastro do profissional.
+          {% else %}Você ainda não tem procedimentos. Peça ao gerente para vinculá-los ao seu cadastro.{% endif %}
+        </p>
       {% endif %}
       <div class="grid gap-5 sm:grid-cols-2"
            hx-get="{% url 'agenda:horarios_livres' %}" hx-trigger="change" hx-target="#horarios" hx-include="this">
+        {% if profissionais is not None %}<input type="hidden" name="profissional" value="{{ profissional.pk }}">{% endif %}
         {% include "partials/campo.html" with campo=form.procedimento %}
         {% include "partials/campo.html" with campo=form.data %}
       </div>
@@ -39,9 +58,10 @@
     </section>
 
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-      <a href="{% url 'agenda:dia' %}" class="btn-secundario">Cancelar</a>
+      <a href="{{ url_retorno }}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">Agendar</button>
     </div>
   </form>
+  {% endif %}
 </div>
 {% endblock %}

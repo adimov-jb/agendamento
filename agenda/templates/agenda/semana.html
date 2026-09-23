@@ -4,18 +4,37 @@
 
 {% block content %}
 <div class="flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-2xl font-bold">Semana de {{ dias.0.data|date:"d/m" }} a {{ dias.6.data|date:"d/m" }}</h1>
-  <div class="flex gap-2">
-    <a href="?data={{ anterior|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Semana anterior">←</a>
-    <a href="?data={{ hoje|date:'Y-m-d' }}" class="btn-pequeno">Esta semana</a>
-    <a href="?data={{ proximo|date:'Y-m-d' }}" class="btn-pequeno" aria-label="Próxima semana">→</a>
-  </div>
+  <h1 class="text-2xl font-bold">
+    {% if dias %}Semana de {{ dias.0.data|date:"d/m" }} a {{ dias.6.data|date:"d/m" }}{% else %}Semana{% endif %}
+  </h1>
+  {% if dias %}
+    <div class="flex gap-2">
+      <a href="?data={{ anterior|date:'Y-m-d' }}{{ filtro }}" class="btn-pequeno" aria-label="Semana anterior">←</a>
+      <a href="?data={{ hoje|date:'Y-m-d' }}{{ filtro }}" class="btn-pequeno">Esta semana</a>
+      <a href="?data={{ proximo|date:'Y-m-d' }}{{ filtro }}" class="btn-pequeno" aria-label="Próxima semana">→</a>
+    </div>
+  {% endif %}
 </div>
 
+{% if profissionais %}
+  <form method="get" class="mt-4">
+    <input type="hidden" name="data" value="{{ dias.0.data|date:'Y-m-d' }}">
+    <label class="text-sm font-medium text-slate-700">Profissional
+      <select name="profissional" onchange="this.form.submit()"
+              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500 sm:w-64">
+        {% for p in profissionais %}<option value="{{ p.pk }}" {% if p == profissional_atual %}selected{% endif %}>{{ p.nome }}</option>{% endfor %}
+      </select>
+    </label>
+  </form>
+{% elif profissionais is not None %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum profissional ativo.</p>
+{% endif %}
+
+{% if dias %}
 <div class="mt-6 grid gap-4 lg:grid-cols-7 lg:gap-2">
   {% for dia in dias %}
     <section class="min-w-0 {% if not dia.expediente %}opacity-70{% endif %}">
-      <a href="{% url 'agenda:dia' %}?data={{ dia.data|date:'Y-m-d' }}"
+      <a href="{{ url_dia }}?data={{ dia.data|date:'Y-m-d' }}"
          class="flex items-baseline gap-2 border-b-2 pb-1 lg:block {% if dia.data == hoje %}border-rose-500 text-rose-700{% else %}border-slate-200{% endif %}">
         <span class="font-semibold capitalize">{{ dia.data|date:"D" }}</span>
         <span class="text-sm text-slate-500">{{ dia.data|date:"d/m" }}</span>
@@ -30,4 +49,5 @@
     </section>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

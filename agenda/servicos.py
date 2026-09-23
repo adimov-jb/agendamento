@@ -134,9 +134,10 @@ def obter_cliente(nome, telefone, data_nascimento=None):
     return cliente
 
 
-def _travar(profissional):
-    """Serializa alterações na agenda do mesmo profissional."""
-    Profissional.objects.select_for_update().filter(pk=profissional.pk).first()
+def _travar(*profissionais):
+    """Serializa alterações na agenda dos profissionais (em ordem de pk, para evitar deadlock)."""
+    pks = sorted({p.pk for p in profissionais})
+    list(Profissional.objects.select_for_update().filter(pk__in=pks).order_by("pk"))
 
 
 def _verificar_horario(profissional, procedimento, inicio, respeitar_antecedencia, ignorar=None):
@@ -192,20 +193,25 @@ def agendar(*, cliente, profissional, procedimento, inicio, origem, respeitar_an
     return agendamento
 
 
-def reagendar(agendamento, inicio, *, respeitar_antecedencia=False):
+def reagendar(agendamento, inicio, *, profissional=None, respeitar_antecedencia=False):
+    """Move para outro horário e, opcionalmente, para outro profissional (uso do gerente)."""
     if not agendamento.em_aberto:
         raise AgendamentoInvalido("Só é possível remarcar agendamentos em aberto.")
+    novo = profissional or agendamento.profissional
+    if novo != agendamento.profissional and (
+        not novo.ativo or not novo.procedimentos.filter(pk=agendamento.procedimento_id).exists()
+    ):
+        raise AgendamentoInvalido("Este profissional não realiza este procedimento.")
     try:
         with transaction.atomic():
-            _travar(agendamento.profissional)
-            _verificar_horario(
-                agendamento.profissional, agendamento.procedimento, inicio, respeitar_antecedencia, ignorar=agendamento
-            )
+            _travar(agendamento.profissional, novo)
+            _verificar_horario(novo, agendamento.procedimento, inicio, respeitar_antecedencia, ignorar=agendamento)
             agendamento.alocacoes.all().delete()
+            agendamento.profissional = novo
             agendamento.inicio = inicio
             agendamento.fim = inicio + timedelta(minutes=agendamento.duracao_minutos + agendamento.intervalo_minutos)
             agendamento.status = Status.AGENDADO
-            agendamento.save(update_fields=["inicio", "fim", "status"])
+            agendamento.save(update_fields=["profissional", "inicio", "fim", "status"])
             _alocar_recursos(agendamento)
     except IntegrityError:
         raise AgendamentoInvalido(MSG_OCUPADO)

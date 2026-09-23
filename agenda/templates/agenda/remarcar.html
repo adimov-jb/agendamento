@@ -7,14 +7,17 @@
 <div class="mx-auto max-w-2xl">
   <a href="{% url 'agenda:detalhe' a.pk %}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
   <h1 class="mt-2 text-2xl font-bold">Remarcar</h1>
-  <p class="mt-1 text-slate-600">{{ a.cliente.nome }} · {{ a.procedimento.nome }} · marcado para {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}</p>
+  <p class="mt-1 text-slate-600">{{ a.cliente.nome }} · {{ a.procedimento.nome }} com {{ a.profissional.nome }} · marcado para {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}</p>
 
   <form method="post" class="cartao mt-6 space-y-5 p-5 sm:p-6">
     {% csrf_token %}
     {% for erro in form.non_field_errors %}<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ erro }}</p>{% endfor %}
     <div hx-get="{% url 'agenda:horarios_livres' %}" hx-trigger="change" hx-target="#horarios" hx-include="this">
       <input type="hidden" name="agendamento" value="{{ a.pk }}">
-      {% include "partials/campo.html" with campo=form.data %}
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% if "profissional" in form.fields %}{% include "partials/campo.html" with campo=form.profissional %}{% endif %}
+        {% include "partials/campo.html" with campo=form.data %}
+      </div>
     </div>
     <div>
       <p class="text-sm font-medium text-slate-700">Novo horário</p>
