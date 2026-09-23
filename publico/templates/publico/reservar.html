@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}{{ procedimento.nome }} · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl">
+  <a href="{% url 'core:home' %}" class="text-sm text-slate-500 hover:text-rose-600">← Procedimentos</a>
+  <h1 class="mt-2 text-2xl font-bold">{{ procedimento.nome }}</h1>
+  <p class="mt-1 text-slate-600">{{ procedimento.duracao_minutos|duracao }} · R$ {{ procedimento.preco|floatformat:"2g" }} · pagamento na clínica</p>
+
+  <form method="post" class="mt-6 space-y-6">
+    {% csrf_token %}
+    {% for erro in form.non_field_errors %}<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ erro }}</p>{% endfor %}
+
+    <div hx-get="{% url 'publico:horarios' procedimento.pk %}" hx-trigger="change" hx-target="#horarios" hx-include="this" class="space-y-6">
+      <section class="cartao p-5 sm:p-6">
+        <h2 class="text-lg font-semibold">1. Profissional</h2>
+        <div class="mt-4 grid gap-2 sm:grid-cols-2">
+          {% for p in profissionais %}
+            <label>
+              <input type="radio" name="profissional" value="{{ p.pk }}" class="peer sr-only" required
+                     {% if p == profissional_escolhido %}checked{% endif %}>
+              <span class="block cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-3 font-medium
+                           hover:border-rose-400 peer-checked:border-rose-600 peer-checked:bg-rose-50 peer-checked:text-rose-800
+                           peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500">{{ p.nome }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        {% for erro in form.profissional.errors %}<p class="mt-2 text-sm text-red-600">{{ erro }}</p>{% endfor %}
+      </section>
+
+      <section class="cartao space-y-4 p-5 sm:p-6">
+        <h2 class="text-lg font-semibold">2. Dia e horário</h2>
+        <div class="sm:w-1/2">{% include "partials/campo.html" with campo=form.data %}</div>
+        <div id="horarios">{% include "agenda/_horarios_livres.html" with mensagem_vazia="Escolha o profissional e a data para ver os horários livres." %}</div>
+        {% for erro in form.inicio.errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
+      </section>
+    </div>
+
+    <section class="cartao space-y-5 p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">3. Seus dados</h2>
+      {% include "partials/campo.html" with campo=form.nome %}
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% include "partials/campo.html" with campo=form.telefone %}
+        {% include "partials/campo.html" with campo=form.data_nascimento %}
+      </div>
+      <p class="text-sm text-slate-500">Com o telefone e a data de nascimento você consulta, remarca ou cancela seus agendamentos depois.</p>
+      {% include "partials/campo.html" with campo=form.consentimento %}
+    </section>
+
+    <button type="submit" class="btn-primario w-full py-3 text-base">Confirmar agendamento</button>
+  </form>
+</div>
+{% endblock %}

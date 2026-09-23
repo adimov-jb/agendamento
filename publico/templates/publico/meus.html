@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}Meus agendamentos · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold">Olá, {{ cliente.nome }}</h1>
+      <p class="text-sm text-slate-500">{{ cliente.telefone|telefone }}</p>
+    </div>
+    <form method="post" action="{% url 'publico:sair' %}">
+      {% csrf_token %}
+      <button class="btn-pequeno">Sair</button>
+    </form>
+  </div>
+
+  <h2 class="mt-8 text-lg font-semibold">Próximos</h2>
+  <ul class="mt-3 space-y-3">
+    {% for a in proximos %}
+      <li class="cartao p-4 {% if a.status == 'precisa_reagendar' %}border-l-4 border-amber-400{% endif %}">
+        <p class="font-semibold"><span class="capitalize">{{ a.inicio|date:"l" }}</span>, {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}</p>
+        <p class="text-slate-600">{{ a.procedimento.nome }} com {{ a.profissional.nome }}</p>
+        {% if a.status == 'precisa_reagendar' %}
+          <p class="mt-2 text-sm text-amber-800">A clínica precisou alterar a agenda neste horário. Escolha um novo horário ou aguarde o contato da clínica.</p>
+        {% endif %}
+        <div class="mt-3 flex flex-wrap gap-2">
+          <a href="{% url 'publico:remarcar' a.pk %}" class="btn-pequeno">Remarcar</a>
+          <form method="post" action="{% url 'publico:cancelar' a.pk %}" onsubmit="return confirm('Cancelar este agendamento?')">
+            {% csrf_token %}
+            <button class="btn-pequeno text-red-700">Cancelar</button>
+          </form>
+        </div>
+      </li>
+    {% empty %}
+      <li class="cartao p-4 text-slate-600">Nenhum agendamento futuro. <a href="{% url 'core:home' %}" class="font-medium text-rose-600 hover:underline">Agendar</a></li>
+    {% endfor %}
+  </ul>
+
+  {% if historico %}
+    <h2 class="mt-8 text-lg font-semibold">Anteriores</h2>
+    <ul class="cartao mt-3 divide-y divide-slate-100">
+      {% for a in historico %}
+        <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+          <span>{{ a.inicio|date:"d/m/Y" }} · {{ a.procedimento.nome }} com {{ a.profissional.nome }}</span>
+          {% include "agenda/_status.html" with status=a.status rotulo=a.get_status_display %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

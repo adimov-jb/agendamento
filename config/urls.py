@@ -11,4 +11,5 @@ urlpatterns = [
     path("", include("catalogo.urls")),
     path("", include("equipe.urls")),
     path("", include("agenda.urls")),
+    path("", include("publico.urls")),
 ]

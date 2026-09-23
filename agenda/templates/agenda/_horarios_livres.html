@@ -1,5 +1,5 @@
 {% if horarios is None %}
-  <p class="text-sm text-slate-500">Escolha o procedimento e a data para ver os horários livres.</p>
+  <p class="text-sm text-slate-500">{{ mensagem_vazia|default:"Escolha o procedimento e a data para ver os horários livres." }}</p>
 {% elif horarios %}
   <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
     {% for h in horarios %}

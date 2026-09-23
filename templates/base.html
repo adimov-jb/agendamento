@@ -19,7 +19,10 @@
           <button type="submit" class="btn-pequeno">Sair</button>
         </form>
       {% else %}
-        <a href="{% url 'login' %}" class="shrink-0 text-sm text-slate-600 hover:text-rose-600">Área da equipe</a>
+        <nav class="flex shrink-0 items-center gap-4 text-sm">
+          <a href="{% url 'publico:meus' %}" class="font-medium text-slate-700 hover:text-rose-600">Meus agendamentos</a>
+          <a href="{% url 'login' %}" class="text-slate-500 hover:text-rose-600">Equipe</a>
+        </nav>
       {% endif %}
     </div>
     {% if eh_gerente %}

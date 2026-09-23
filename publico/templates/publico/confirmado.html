@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}Agendamento confirmado · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+{% with a=agendamento %}
+<div class="mx-auto max-w-lg text-center">
+  <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700" aria-hidden="true">✓</div>
+  <h1 class="mt-4 text-2xl font-bold">Agendamento confirmado!</h1>
+
+  <div class="cartao mt-6 space-y-1 p-5 text-left">
+    <p class="text-lg font-semibold">{{ a.procedimento.nome }}</p>
+    <p><span class="capitalize">{{ a.inicio|date:"l" }}</span>, {{ a.inicio|date:"d \d\e F" }} às {{ a.inicio|time:"H:i" }}</p>
+    <p class="text-slate-600">com {{ a.profissional.nome }} · {{ a.duracao_minutos|duracao }}</p>
+    <p class="text-slate-600">R$ {{ a.preco|floatformat:"2g" }}, pago na clínica</p>
+  </div>
+
+  <p class="mt-4 text-sm text-slate-500">Guarde este horário. Não enviamos lembretes por mensagem.</p>
+
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+    <a href="{% url 'publico:meus' %}" class="btn-secundario">Meus agendamentos</a>
+    <a href="{% url 'core:home' %}" class="btn-primario">Agendar outro</a>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

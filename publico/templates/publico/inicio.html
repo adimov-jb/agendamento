@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block content %}
+<section>
+  <h1 class="text-2xl font-bold sm:text-3xl">Agende seu horário</h1>
+  <p class="mt-2 text-slate-600">Escolha o procedimento. Em seguida, o profissional e o melhor horário para você.</p>
+</section>
+
+{% if procedimentos %}
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for p in procedimentos %}
+      <a href="{% url 'publico:reservar' p.pk %}" class="cartao group flex flex-col p-5 hover:ring-rose-300">
+        <h2 class="text-lg font-semibold group-hover:text-rose-700">{{ p.nome }}</h2>
+        {% if p.descricao %}<p class="mt-1 text-sm text-slate-600">{{ p.descricao|linebreaksbr }}</p>{% endif %}
+        <div class="mt-4 flex items-end justify-between gap-3 pt-2 sm:mt-auto">
+          <p class="text-sm text-slate-500">{{ p.duracao_minutos|duracao }} · <span class="font-medium text-slate-800">R$ {{ p.preco|floatformat:"2g" }}</span></p>
+          <span class="btn-primario px-3 py-1.5 text-sm">Agendar</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum procedimento disponível para agendamento online no momento.</p>
+{% endif %}
+
+<p class="mt-8 text-sm text-slate-500">
+  Já tem horário marcado? <a href="{% url 'publico:meus' %}" class="font-medium text-rose-600 hover:underline">Veja, remarque ou cancele</a>.
+</p>
+{% endblock %}

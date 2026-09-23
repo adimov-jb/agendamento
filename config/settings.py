@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "catalogo",
     "equipe",
     "agenda",
+    "publico",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Remarcar · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+{% with a=agendamento %}
+<div class="mx-auto max-w-2xl">
+  <a href="{% url 'publico:meus' %}" class="text-sm text-slate-500 hover:text-rose-600">← Meus agendamentos</a>
+  <h1 class="mt-2 text-2xl font-bold">Remarcar</h1>
+  <p class="mt-1 text-slate-600">{{ a.procedimento.nome }} com {{ a.profissional.nome }} · marcado para {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}</p>
+
+  <form method="post" class="cartao mt-6 space-y-5 p-5 sm:p-6">
+    {% csrf_token %}
+    {% for erro in form.non_field_errors %}<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ erro }}</p>{% endfor %}
+    <div class="sm:w-1/2" hx-get="{% url 'publico:horarios_remarcacao' a.pk %}" hx-trigger="change" hx-target="#horarios" hx-include="this">
+      {% include "partials/campo.html" with campo=form.data %}
+    </div>
+    <div>
+      <p class="text-sm font-medium text-slate-700">Novo horário</p>
+      <div id="horarios" class="mt-2">{% include "agenda/_horarios_livres.html" with mensagem_vazia="Escolha a data para ver os horários livres." %}</div>
+      {% for erro in form.inicio.errors %}<p class="mt-1 text-sm text-red-600">{{ erro }}</p>{% endfor %}
+    </div>
+    {% url 'publico:meus' as voltar_url %}
+    {% include "partials/botoes_form.html" %}
+  </form>
+</div>
+{% endwith %}
+{% endblock %}

@@ -128,6 +128,16 @@ agendado ──► atendido
   - **Taxa de faltas** é faltas ÷ (atendidos + faltas). Agendamentos já passados sem registro de presença não entram na conta, e o relatório avisa quando existem.
   - Os valores usam o preço do momento do agendamento e incluem profissionais inativos.
   - O período padrão é o mês atual, com limite de um ano.
+- **Agendamento online (cliente):**
+  - A página inicial lista só os procedimentos ativos que têm pelo menos um profissional ativo.
+  - Se só um profissional realiza o procedimento, ele já vem escolhido.
+  - Um telefone já cadastrado só agenda com a **mesma data de nascimento**. Se a equipe o cadastrou sem data, ela é completada.
+  - O consentimento LGPD é obrigatório e fica registrado no cliente.
+- **Acesso a "Meus agendamentos":**
+  - Após agendar ou se identificar, o cliente fica identificado por **30 minutos**, renovados a cada acesso.
+  - Pode cancelar ou remarcar só **agendamentos futuros em aberto**, sempre com o mesmo profissional.
+  - Clientes cadastrados pela equipe sem data de nascimento não conseguem entrar até ela ser informada.
+- **Limite de tentativas:** até 5 falhas por telefone e 20 por IP em 15 minutos. As tentativas ficam no banco para valer com vários processos do servidor.
 - **Agendamento duplo:** o banco de dados (PostgreSQL, *exclusion constraints*) impede sobreposição para o mesmo profissional ou recurso, mesmo com duas requisições simultâneas.
 
 ### 4.7 Fuso horário
@@ -211,3 +221,8 @@ agendado ──► atendido
 
 - [ ] Nome e identidade visual do app.
 - [ ] Hospedagem de produção e domínio.
+
+### Antes de colocar em produção
+- [ ] **IP real do cliente atrás de proxy:** o limite de tentativas usa `REMOTE_ADDR`. Atrás de um proxy reverso (Nginx, Render etc.), ajuste `publico/acesso.py::ip_de` para o cabeçalho confiável.
+- [ ] **Proteção contra agendamentos em massa (spam):** não há captcha nem limite por IP na criação de agendamentos online.
+- [ ] **Configurações de segurança do Django:** `DEBUG=0`, `SECRET_KEY` forte, `ALLOWED_HOSTS`, HTTPS e cookies seguros.
