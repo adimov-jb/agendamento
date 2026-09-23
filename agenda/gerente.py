@@ -12,10 +12,16 @@ from core.permissions import gerente_required
 from equipe.models import Profissional
 
 from . import servicos
-from .forms import RelatorioForm
 from .models import Agendamento, Bloqueio
-from .relatorios import gerar as gerar_relatorio
-from .views import contexto_semana, data_da_url, escolhido, itens_do_dia, pagina_bloqueios, pagina_novo_agendamento
+from .views import (
+    contexto_semana,
+    data_da_url,
+    escolhido,
+    itens_do_dia,
+    pagina_bloqueios,
+    pagina_novo_agendamento,
+    pagina_relatorio,
+)
 
 
 def _profissionais_ativos():
@@ -80,38 +86,10 @@ def pendencias(request):
     return render(request, "agenda/gerente/pendencias.html", {"agendamentos": agendamentos})
 
 
-def _atalhos_de_periodo(hoje):
-    inicio_mes = hoje.replace(day=1)
-    fim_mes_passado = inicio_mes - timedelta(days=1)
-    proximo_mes = (inicio_mes + timedelta(days=32)).replace(day=1)
-    segunda = hoje - timedelta(days=hoje.weekday())
-    return [
-        ("Esta semana", segunda, segunda + timedelta(days=6)),
-        ("Este mês", inicio_mes, proximo_mes - timedelta(days=1)),
-        ("Mês passado", fim_mes_passado.replace(day=1), fim_mes_passado),
-        ("Últimos 30 dias", hoje - timedelta(days=29), hoje),
-    ]
-
-
 @gerente_required
 def relatorios(request):
-    hoje = timezone.localdate()
-    atalhos = _atalhos_de_periodo(hoje)
-    _, inicio_padrao, fim_padrao = atalhos[1]  # este mês
-
-    profissionais = Profissional.objects.all()  # inclui inativos: o histórico continua valendo
-    dados = request.GET if "inicio" in request.GET else None
-    form = RelatorioForm(dados, profissionais=profissionais, initial={"inicio": inicio_padrao, "fim": fim_padrao})
-
-    contexto = {"form": form, "atalhos": atalhos}
-    if dados is None or form.is_valid():
-        filtros = form.cleaned_data if dados is not None else {"inicio": inicio_padrao, "fim": fim_padrao}
-        contexto.update(
-            relatorio=gerar_relatorio(filtros["inicio"], filtros["fim"], filtros.get("profissional")),
-            periodo=(filtros["inicio"], filtros["fim"]),
-            profissional=filtros.get("profissional"),
-        )
-    return render(request, "agenda/gerente/relatorios.html", contexto)
+    # Inclui inativos: o histórico continua valendo
+    return pagina_relatorio(request, profissionais=Profissional.objects.all(), url_dia=reverse("agenda:gerente_dia"))
 
 
 @gerente_required

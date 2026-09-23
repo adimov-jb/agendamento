@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% load formatos %}
 
-{% block title %}Relatórios · {{ APP_NAME }}{% endblock %}
+{% block title %}{% if meu_relatorio %}Meu relatório{% else %}Relatórios{% endif %} · {{ APP_NAME }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold">Relatórios</h1>
+<h1 class="text-2xl font-bold">{% if meu_relatorio %}Meu relatório{% else %}Relatórios{% endif %}</h1>
+{% if meu_relatorio %}<p class="mt-1 text-slate-600">Somente os seus atendimentos.</p>{% endif %}
 
 {# Filtros: uma linha acima dos números #}
 <form method="get" class="cartao mt-6 p-4 sm:p-5">
   {% for erro in form.non_field_errors %}<p class="mb-3 text-sm text-red-600">{{ erro }}</p>{% endfor %}
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+  <div class="grid gap-4 sm:grid-cols-2 lg:items-end {% if meu_relatorio %}lg:grid-cols-[1fr_1fr_auto]{% else %}lg:grid-cols-[1fr_1fr_1fr_auto]{% endif %}">
     {% include "partials/campo.html" with campo=form.inicio %}
     {% include "partials/campo.html" with campo=form.fim %}
-    {% include "partials/campo.html" with campo=form.profissional %}
+    {% if not meu_relatorio %}{% include "partials/campo.html" with campo=form.profissional %}{% endif %}
     <button type="submit" class="btn-primario">Filtrar</button>
   </div>
   <div class="mt-4 flex flex-wrap gap-2">
@@ -60,15 +61,15 @@
   </p>
 {% endif %}
 
-{# Por profissional #}
+{# Por profissional e data #}
 <section class="mt-8">
-  <h2 class="text-lg font-semibold">Por profissional</h2>
+  <h2 class="text-lg font-semibold">{% if meu_relatorio %}Por data{% else %}Por profissional e data{% endif %}</h2>
   {% if relatorio.por_profissional %}
     <div class="cartao mt-3 overflow-x-auto">
       <table class="w-full min-w-[46rem] text-sm">
         <thead class="border-b border-slate-200 text-left text-slate-500">
           <tr>
-            <th class="px-4 py-2 font-medium">Profissional</th>
+            <th class="px-4 py-2 font-medium">{% if meu_relatorio %}Data{% else %}Profissional / data{% endif %}</th>
             <th class="px-3 py-2 text-right font-medium">Agendamentos</th>
             <th class="px-3 py-2 text-right font-medium">Atendidos</th>
             <th class="px-3 py-2 text-right font-medium">Faltas</th>
@@ -79,10 +80,10 @@
             <th class="px-4 py-2 text-right font-medium">Previsto (R$)</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 tabular-nums">
-          {% for l in relatorio.por_profissional %}
-            <tr>
-              <td class="px-4 py-2 font-medium">{{ l.profissional__nome }}</td>
+        {% for l in relatorio.por_profissional %}
+          <tbody class="divide-y divide-slate-100 border-t border-slate-200 tabular-nums first-of-type:border-t-0">
+            <tr class="bg-slate-50 font-semibold">
+              <td class="px-4 py-2">{{ l.profissional__nome }}</td>
               <td class="px-3 py-2 text-right">{{ l.total }}</td>
               <td class="px-3 py-2 text-right">{{ l.atendidos }}</td>
               <td class="px-3 py-2 text-right">{{ l.faltas }}</td>
@@ -92,8 +93,21 @@
               <td class="px-3 py-2 text-right">{{ l.realizado|floatformat:"2g" }}</td>
               <td class="px-4 py-2 text-right">{{ l.previsto|floatformat:"2g" }}</td>
             </tr>
-          {% endfor %}
-        </tbody>
+            {% for d in l.dias %}
+              <tr class="text-slate-600">
+                <td class="py-2 pl-8 pr-4"><a href="{{ url_dia }}?data={{ d.dia|date:'Y-m-d' }}" class="hover:text-rose-600">{{ d.dia|date:"D, d/m/Y" }}</a></td>
+                <td class="px-3 py-2 text-right">{{ d.total }}</td>
+                <td class="px-3 py-2 text-right">{{ d.atendidos }}</td>
+                <td class="px-3 py-2 text-right">{{ d.faltas }}</td>
+                <td class="px-3 py-2 text-right">{{ d.taxa_faltas|percentual }}</td>
+                <td class="px-3 py-2 text-right">{{ d.cancelados }}</td>
+                <td class="px-3 py-2 text-right">{{ d.a_realizar }}</td>
+                <td class="px-3 py-2 text-right">{{ d.realizado|floatformat:"2g" }}</td>
+                <td class="px-4 py-2 text-right">{{ d.previsto|floatformat:"2g" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        {% endfor %}
         {% if relatorio.por_profissional|length > 1 %}
           <tfoot class="border-t-2 border-slate-200 font-semibold tabular-nums">
             <tr>

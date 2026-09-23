@@ -73,6 +73,8 @@
             <a href="{{ url_semana }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_semana %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Semana</a>
             <a href="{{ url_horarios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_horarios %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Horários de trabalho</a>
             <a href="{{ url_bloqueios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_bloqueios in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Bloqueios</a>
+            {% url 'agenda:relatorio' as url_relatorio %}
+            <a href="{{ url_relatorio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_relatorio %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Meu relatório</a>
           {% endwith %}
         </div>
       </nav>

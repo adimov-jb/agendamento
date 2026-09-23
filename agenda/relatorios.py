@@ -3,6 +3,7 @@
 from datetime import time, timedelta
 
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 from .models import Agendamento
@@ -55,6 +56,17 @@ def gerar(data_inicio, data_fim, profissional=None, agora=None):
         .annotate(**metricas)
         .order_by("profissional__nome")
     ]
+    # Cada profissional quebrado por dia (data local do início do atendimento)
+    por_dia = {}
+    for linha in (
+        agendamentos.annotate(dia=TruncDate("inicio"))
+        .values("profissional_id", "dia")
+        .annotate(**metricas)
+        .order_by("dia")
+    ):
+        por_dia.setdefault(linha["profissional_id"], []).append(_com_taxa(linha))
+    for linha in por_profissional:
+        linha["dias"] = por_dia.get(linha["profissional_id"], [])
     clientes_faltosos = [
         _com_taxa(linha)
         for linha in agendamentos.filter(status__in=[Status.ATENDIDO, Status.FALTOU])

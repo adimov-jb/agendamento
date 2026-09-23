@@ -110,9 +110,13 @@ class RelatorioForm(EstiloMixin, forms.Form):
         label="Profissional", queryset=None, required=False, empty_label="Todos"
     )
 
-    def __init__(self, *args, profissionais, **kwargs):
+    def __init__(self, *args, profissionais=None, **kwargs):
+        """Sem `profissionais` (relatório do próprio profissional), não há filtro de profissional."""
         super().__init__(*args, **kwargs)
-        self.fields["profissional"].queryset = profissionais
+        if profissionais is None:
+            del self.fields["profissional"]
+        else:
+            self.fields["profissional"].queryset = profissionais
 
     def clean(self):
         dados = super().clean()

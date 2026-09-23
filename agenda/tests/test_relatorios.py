@@ -56,6 +56,17 @@ def test_por_profissional(cenario, ana, bia):
     assert linhas["Bia"]["taxa_faltas"] == 0
 
 
+def test_profissional_quebrado_por_data(cenario, ana, marcar):
+    semana_seguinte = cenario + timedelta(days=7)
+    marcar(ana, hora(semana_seguinte, "09:00"))
+    linhas = {l["profissional__nome"]: l for l in relatorios.gerar(cenario, semana_seguinte)["por_profissional"]}
+
+    dias_da_ana = [(d["dia"], d["total"], d["previsto"]) for d in linhas["Ana"]["dias"]]
+    assert dias_da_ana == [(cenario, 4, Decimal("300.00")), (semana_seguinte, 1, Decimal("150.00"))]
+    assert linhas["Ana"]["dias"][0]["taxa_faltas"] == 0.5
+    assert [d["dia"] for d in linhas["Bia"]["dias"]] == [cenario]
+
+
 def test_filtro_por_profissional(cenario, bia):
     r = relatorios.gerar(cenario, cenario, profissional=bia)
     assert r["totais"]["total"] == 1
@@ -116,6 +127,26 @@ def test_tela_com_filtros(cliente_gerente, cenario, ana):
     assert "R$ 150,00" in html  # realizado da Ana
     assert "50%" in html
     assert "Carla" in html and "(11) 99999-8888" in html
+
+
+def test_profissional_ve_so_o_proprio_relatorio(client, cenario, ana, bia):
+    client.force_login(ana.usuario)
+    url = reverse("agenda:relatorio")
+    periodo = {"inicio": cenario.isoformat(), "fim": cenario.isoformat()}
+
+    response = client.get(url, periodo)
+    assert response.status_code == 200
+    assert response.context["relatorio"]["totais"]["total"] == 4  # a Bia tem mais 1 no dia
+    assert [l["profissional__nome"] for l in response.context["relatorio"]["por_profissional"]] == ["Ana"]
+    html = response.content.decode()
+    assert "Meu relatório" in html and 'name="profissional"' not in html
+
+    # Tentar filtrar outro profissional pela URL não muda nada
+    assert client.get(url, {**periodo, "profissional": bia.pk}).context["relatorio"]["totais"]["total"] == 4
+
+
+def test_relatorio_do_profissional_exige_perfil_profissional(cliente_gerente):
+    assert cliente_gerente.get(reverse("agenda:relatorio")).status_code == 403
 
 
 def test_tela_periodo_invertido(cliente_gerente, cenario):

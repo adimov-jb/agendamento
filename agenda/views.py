@@ -14,8 +14,8 @@ from clinica.models import DiaSemana, HorarioClinica
 from core.permissions import PERFIL_PROFISSIONAL, atua_como_gerente, perfil_required
 from equipe.models import Profissional
 
-from . import servicos
-from .forms import AgendamentoForm, BloqueioForm, HorarioTrabalhoDiaForm, RemarcarForm
+from . import relatorios, servicos
+from .forms import AgendamentoForm, BloqueioForm, HorarioTrabalhoDiaForm, RelatorioForm, RemarcarForm
 from .models import Agendamento, Bloqueio, HorarioTrabalho
 
 Status = Agendamento.Status
@@ -353,6 +353,47 @@ def horarios(request):
         return redirect("agenda:horarios")
 
     return render(request, "agenda/horarios.html", {"formularios": formularios})
+
+
+# Relatórios
+
+
+def _atalhos_de_periodo(hoje):
+    inicio_mes = hoje.replace(day=1)
+    fim_mes_passado = inicio_mes - timedelta(days=1)
+    proximo_mes = (inicio_mes + timedelta(days=32)).replace(day=1)
+    segunda = hoje - timedelta(days=hoje.weekday())
+    return [
+        ("Esta semana", segunda, segunda + timedelta(days=6)),
+        ("Este mês", inicio_mes, proximo_mes - timedelta(days=1)),
+        ("Mês passado", fim_mes_passado.replace(day=1), fim_mes_passado),
+        ("Últimos 30 dias", hoje - timedelta(days=29), hoje),
+    ]
+
+
+def pagina_relatorio(request, *, url_dia, profissionais=None, profissional=None):
+    """Relatório do período. Gerente: filtra entre `profissionais`. Profissional: só os dados de `profissional`."""
+    atalhos = _atalhos_de_periodo(timezone.localdate())
+    _, inicio_padrao, fim_padrao = atalhos[1]  # este mês
+
+    dados = request.GET if "inicio" in request.GET else None
+    form = RelatorioForm(dados, profissionais=profissionais, initial={"inicio": inicio_padrao, "fim": fim_padrao})
+
+    contexto = {"form": form, "atalhos": atalhos, "url_dia": url_dia, "meu_relatorio": profissional is not None}
+    if dados is None or form.is_valid():
+        filtros = form.cleaned_data if dados is not None else {"inicio": inicio_padrao, "fim": fim_padrao}
+        filtro_profissional = profissional or filtros.get("profissional")
+        contexto.update(
+            relatorio=relatorios.gerar(filtros["inicio"], filtros["fim"], filtro_profissional),
+            periodo=(filtros["inicio"], filtros["fim"]),
+            profissional=filtros.get("profissional"),
+        )
+    return render(request, "agenda/gerente/relatorios.html", contexto)
+
+
+@profissional_required
+def relatorio(request):
+    return pagina_relatorio(request, profissional=request.user.profissional, url_dia=reverse("agenda:dia"))
 
 
 def pagina_bloqueios(request, profissional, *, url_lista, url_excluir, titulo, descricao):

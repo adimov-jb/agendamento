@@ -11,6 +11,7 @@ urlpatterns = [
     path("agenda/novo/", views.novo, name="novo"),
     path("agenda/horarios/", views.horarios, name="horarios"),
     path("agenda/bloqueios/", views.bloqueios, name="bloqueios"),
+    path("agenda/relatorio/", views.relatorio, name="relatorio"),
     path("agenda/bloqueios/<int:pk>/excluir/", views.excluir_bloqueio, name="excluir_bloqueio"),
     # Profissional ou gerente
     path("agenda/horarios-livres/", views.horarios_livres, name="horarios_livres"),
