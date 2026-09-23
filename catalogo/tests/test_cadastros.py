@@ -64,6 +64,13 @@ def test_cria_procedimento_sem_recursos(cliente_gerente):
     assert Procedimento.objects.get().recursos.count() == 0
 
 
+def test_linha_sem_tipo_e_ignorada_mesmo_com_quantidade_alterada(cliente_gerente, sala):
+    dados = dados_procedimento([(sala, 1)], **{"recursos-1-quantidade": ""})
+    response = cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados)
+    assert response.status_code == 302
+    assert [(r.tipo.nome, r.quantidade) for r in Procedimento.objects.get().recursos.all()] == [("Sala", 1)]
+
+
 def test_quantidade_maior_que_unidades_ativas(cliente_gerente, laser):
     response = cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados_procedimento([(laser, 2)]))
     assert response.status_code == 200

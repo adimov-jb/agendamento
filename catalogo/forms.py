@@ -18,6 +18,12 @@ class ProcedimentoRecursoForm(EstiloMixin, forms.ModelForm):
         model = ProcedimentoRecurso
         fields = ["tipo", "quantidade"]
 
+    def has_changed(self):
+        # Linha nova sem tipo escolhido fica vazia, mesmo que a quantidade tenha sido mexida.
+        if not self.instance.pk and not self.data.get(self.add_prefix("tipo")):
+            return False
+        return super().has_changed()
+
     def clean(self):
         dados = super().clean()
         tipo, quantidade = dados.get("tipo"), dados.get("quantidade")
