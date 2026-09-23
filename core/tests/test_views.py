@@ -66,3 +66,44 @@ def test_login_com_email(client, profissional):
 @pytest.mark.parametrize("minutos,esperado", [(45, "45 min"), (60, "1h"), (75, "1h15"), (125, "2h05")])
 def test_filtro_duracao(minutos, esperado):
     assert duracao(minutos) == esperado
+
+
+@pytest.fixture
+def gerente_profissional(profissional):
+    """Ana é profissional e também gerente: um só login."""
+    profissional.usuario.groups.add(Group.objects.get(name=GRUPO_GERENTE))
+    return profissional
+
+
+def test_quem_tem_os_dois_perfis_escolhe_ao_entrar(client, gerente_profissional):
+    client.force_login(gerente_profissional.usuario)
+    assert client.get(reverse("core:painel")).url == reverse("core:perfil")
+    assert "Como você quer entrar?" in client.get(reverse("core:perfil")).content.decode()
+
+
+@pytest.mark.parametrize(
+    "perfil,inicio,bloqueada",
+    [("gerente", "agenda:gerente_dia", "agenda:dia"), ("profissional", "agenda:dia", "agenda:gerente_dia")],
+)
+def test_perfil_escolhido_define_a_area(client, gerente_profissional, perfil, inicio, bloqueada):
+    client.force_login(gerente_profissional.usuario)
+    assert client.post(reverse("core:perfil"), {"perfil": perfil}).url == reverse(inicio)
+    assert client.get(reverse("core:painel")).url == reverse(inicio)
+    assert client.get(reverse(inicio)).status_code == 200
+    # A área do outro perfil pede para trocar de perfil
+    assert client.get(reverse(bloqueada)).url == reverse("core:perfil")
+
+
+def test_menu_mostra_troca_de_perfil(client, gerente_profissional):
+    client.force_login(gerente_profissional.usuario)
+    client.post(reverse("core:perfil"), {"perfil": "gerente"})
+    html = client.get(reverse("agenda:gerente_dia")).content.decode()
+    assert "Ir para profissional" in html
+    assert "Minha agenda" not in html
+
+
+def test_perfil_invalido_nao_e_aceito(client, profissional):
+    client.force_login(profissional.usuario)
+    # Quem só é profissional não tem escolha a fazer
+    assert client.post(reverse("core:perfil"), {"perfil": "gerente"}).url == reverse("core:painel")
+    assert client.get(reverse("agenda:gerente_dia")).status_code == 403

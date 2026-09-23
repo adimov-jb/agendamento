@@ -1,8 +1,10 @@
 import pytest
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
 from catalogo.models import Procedimento
 from conftest import SENHA
+from core.permissions import GRUPO_GERENTE, eh_gerente
 from equipe.models import Profissional
 
 pytestmark = pytest.mark.django_db
@@ -87,4 +89,52 @@ def test_inativar_bloqueia_login(cliente_gerente, client, profissional):
     cliente_gerente.force_login(profissional.usuario.__class__.objects.get(email="gerente@clinica.com"))
     cliente_gerente.post(url, HTTP_HX_REQUEST="true")
     profissional.usuario.refresh_from_db()
+    assert profissional.usuario.is_active
+
+
+def test_marca_profissional_como_gerente(cliente_gerente, limpeza):
+    cliente_gerente.post(
+        URL_NOVO,
+        {"nome": "Bia", "email": "bia@clinica.com", "senha": SENHA, "gerente": "on", "procedimentos": [limpeza.pk]},
+    )
+    usuario = Profissional.objects.get(nome="Bia").usuario
+    assert eh_gerente(usuario)
+
+    url = reverse("equipe:profissional_editar", args=[Profissional.objects.get(nome="Bia").pk])
+    cliente_gerente.post(url, {"nome": "Bia", "email": "bia@clinica.com", "senha": ""})
+    assert not eh_gerente(usuario)
+
+
+def test_gerente_existente_vira_profissional_com_o_mesmo_login(cliente_gerente, client, gerente, limpeza):
+    response = cliente_gerente.post(
+        URL_NOVO, {"nome": "Gê", "email": "gerente@clinica.com", "senha": "", "procedimentos": [limpeza.pk]}
+    )
+    assert response.status_code == 302
+    profissional = Profissional.objects.get(nome="Gê")
+    assert profissional.usuario == gerente
+    assert eh_gerente(gerente)  # continua gerente mesmo sem marcar a opção
+
+    client.logout()
+    assert client.login(username="gerente@clinica.com", password=SENHA)  # senha mantida
+
+
+def test_vincular_gerente_nao_troca_a_senha(cliente_gerente, gerente):
+    response = cliente_gerente.post(URL_NOVO, {"nome": "Gê", "email": "gerente@clinica.com", "senha": "Outra-Senha-2026"})
+    assert "Deixe em branco para manter a senha atual." in response.content.decode()
+    assert not Profissional.objects.exists()
+
+
+def test_gerente_nao_remove_o_proprio_acesso(cliente_gerente, gerente):
+    cliente_gerente.post(URL_NOVO, {"nome": "Gê", "email": "gerente@clinica.com", "senha": ""})
+    url = reverse("equipe:profissional_editar", args=[gerente.profissional.pk])
+    cliente_gerente.post(url, {"nome": "Gê", "email": "gerente@clinica.com", "senha": ""})
+    assert eh_gerente(gerente)
+
+
+def test_inativar_profissional_gerente_mantem_o_login(cliente_gerente, profissional):
+    profissional.usuario.groups.add(Group.objects.get(name=GRUPO_GERENTE))
+    cliente_gerente.post(reverse("equipe:profissional_alternar", args=[profissional.pk]))
+    profissional.refresh_from_db()
+    profissional.usuario.refresh_from_db()
+    assert not profissional.ativo
     assert profissional.usuario.is_active

@@ -10,4 +10,5 @@ urlpatterns = [
     path("", inicio, name="home"),
     path("health/", views.health, name="health"),
     path("painel/", views.painel, name="painel"),
+    path("perfil/", views.perfil, name="perfil"),
 ]

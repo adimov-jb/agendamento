@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Escolher perfil · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  <h1 class="text-2xl font-bold">Como você quer entrar?</h1>
+  <p class="mt-1 text-slate-600">Você é gerente e profissional. Dá para trocar de perfil a qualquer momento pelo topo da página.</p>
+
+  <form method="post" class="mt-6 grid gap-3">
+    {% csrf_token %}
+    <button type="submit" name="perfil" value="gerente"
+            class="cartao p-5 text-left hover:ring-rose-400 {% if atual == 'gerente' %}ring-2 ring-rose-600{% endif %}">
+      <span class="block text-lg font-semibold">Gerente</span>
+      <span class="mt-1 block text-sm text-slate-500">Agenda de todos, pendências, relatórios e cadastros.</span>
+    </button>
+    <button type="submit" name="perfil" value="profissional"
+            class="cartao p-5 text-left hover:ring-rose-400 {% if atual == 'profissional' %}ring-2 ring-rose-600{% endif %}">
+      <span class="block text-lg font-semibold">Profissional</span>
+      <span class="mt-1 block text-sm text-slate-500">Minha agenda, horários de trabalho e bloqueios.</span>
+    </button>
+  </form>
+</div>
+{% endblock %}

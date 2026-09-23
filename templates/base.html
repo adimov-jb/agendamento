@@ -13,11 +13,23 @@
       <a href="{% if user.is_authenticated %}{% url 'core:painel' %}{% else %}{% url 'core:home' %}{% endif %}"
          class="truncate text-lg font-semibold text-rose-600">{{ APP_NAME }}</a>
       {% if user.is_authenticated %}
-        <form method="post" action="{% url 'logout' %}" class="flex shrink-0 items-center gap-3">
-          {% csrf_token %}
+        <div class="flex shrink-0 items-center gap-3">
           <span class="hidden text-sm text-slate-500 sm:inline">{{ user.email|default:user.username }}</span>
-          <button type="submit" class="btn-pequeno">Sair</button>
-        </form>
+          {% if pode_trocar_perfil and perfil_ativo %}
+            <form method="post" action="{% url 'core:perfil' %}">
+              {% csrf_token %}
+              {% if perfil_ativo == "gerente" %}
+                <button type="submit" name="perfil" value="profissional" class="btn-pequeno" title="Você está como gerente">Ir para profissional</button>
+              {% else %}
+                <button type="submit" name="perfil" value="gerente" class="btn-pequeno" title="Você está como profissional">Ir para gerente</button>
+              {% endif %}
+            </form>
+          {% endif %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-pequeno">Sair</button>
+          </form>
+        </div>
       {% else %}
         <nav class="flex shrink-0 items-center gap-4 text-sm">
           <a href="{% url 'publico:meus' %}" class="font-medium text-slate-700 hover:text-rose-600">Meus agendamentos</a>

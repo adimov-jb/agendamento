@@ -1,11 +1,12 @@
+from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count
+from django.db.models import BooleanField, Count, Exists, ExpressionWrapper, OuterRef, Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, ListView, UpdateView
 
-from core.permissions import GerenteRequiredMixin, gerente_required
+from core.permissions import GRUPO_GERENTE, GerenteRequiredMixin, gerente_required
 from core.utils import responder_linha
 
 from .forms import ProfissionalForm
@@ -13,7 +14,13 @@ from .models import Profissional
 
 
 def _lista():
-    return Profissional.objects.select_related("usuario").annotate(total_procedimentos=Count("procedimentos"))
+    no_grupo_gerente = Group.objects.filter(name=GRUPO_GERENTE, user=OuterRef("usuario"))
+    return Profissional.objects.select_related("usuario").annotate(
+        total_procedimentos=Count("procedimentos"),
+        eh_gerente=ExpressionWrapper(
+            Q(usuario__is_superuser=True) | Exists(no_grupo_gerente), output_field=BooleanField()
+        ),
+    )
 
 
 class ProfissionalLista(GerenteRequiredMixin, ListView):
@@ -30,6 +37,9 @@ class ProfissionalFormMixin(GerenteRequiredMixin, SuccessMessageMixin):
     template_name = "core/form.html"
     success_url = reverse_lazy("equipe:profissionais")
     success_message = "Profissional “%(nome)s” salvo."
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "usuario_logado": self.request.user}
 
 
 class ProfissionalNovo(ProfissionalFormMixin, CreateView):

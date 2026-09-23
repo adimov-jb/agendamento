@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models, transaction
 
 from catalogo.models import Procedimento
+from core.permissions import eh_gerente
 
 
 class Profissional(models.Model):
@@ -21,9 +22,10 @@ class Profissional(models.Model):
         return self.nome
 
     def definir_ativo(self, ativo):
-        """Inativar o profissional também bloqueia o login dele."""
+        """Inativar o profissional também bloqueia o login dele, a menos que ele seja gerente."""
         with transaction.atomic():
             self.ativo = ativo
             self.save(update_fields=["ativo"])
-            self.usuario.is_active = ativo
-            self.usuario.save(update_fields=["is_active"])
+            if ativo or not eh_gerente(self.usuario):
+                self.usuario.is_active = ativo
+                self.usuario.save(update_fields=["is_active"])

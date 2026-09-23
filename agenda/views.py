@@ -1,5 +1,4 @@
 from datetime import date, time, timedelta
-from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,7 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from clinica.models import DiaSemana, HorarioClinica
-from core.permissions import eh_gerente
+from core.permissions import PERFIL_PROFISSIONAL, atua_como_gerente, perfil_required
 from equipe.models import Profissional
 
 from . import servicos
@@ -24,16 +23,7 @@ Status = Agendamento.Status
 
 # Permissões
 
-
-def profissional_required(view):
-    @wraps(view)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if not hasattr(request.user, "profissional"):
-            raise PermissionDenied
-        return view(request, *args, **kwargs)
-
-    return wrapper
+profissional_required = perfil_required(PERFIL_PROFISSIONAL)
 
 
 def _origem(user, profissional):
@@ -47,7 +37,7 @@ def _agendamento_acessivel(request, pk):
     agendamento = get_object_or_404(
         Agendamento.objects.select_related("cliente", "procedimento", "profissional"), pk=pk
     )
-    if not (eh_gerente(request.user) or getattr(request.user, "profissional", None) == agendamento.profissional):
+    if not (atua_como_gerente(request) or getattr(request.user, "profissional", None) == agendamento.profissional):
         raise Http404
     return agendamento
 
@@ -209,7 +199,7 @@ def novo(request):
 @login_required
 def horarios_livres(request):
     """Fragmento HTMX com os horários livres. O gerente pode indicar qualquer profissional."""
-    gerente = eh_gerente(request.user)
+    gerente = atua_como_gerente(request)
     profissional_indicado = escolhido(Profissional.objects.filter(ativo=True), request.GET.get("profissional"))
     ignorar = None
 
@@ -254,7 +244,7 @@ def remarcar(request, pk):
         messages.error(request, "Este agendamento não pode mais ser remarcado.")
         return redirect("agenda:detalhe", pk=pk)
 
-    profissionais = profissionais_para_remarcar(agendamento) if eh_gerente(request.user) else None
+    profissionais = profissionais_para_remarcar(agendamento) if atua_como_gerente(request) else None
     form = RemarcarForm(
         request.POST or None,
         profissionais=profissionais,

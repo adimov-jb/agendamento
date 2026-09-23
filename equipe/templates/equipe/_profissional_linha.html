@@ -1,6 +1,7 @@
 <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {% if not profissional.ativo %}bg-slate-50{% endif %}">
   <div class="min-w-0">
     <a href="{% url 'equipe:profissional_editar' profissional.pk %}" class="font-medium hover:text-rose-600 {% if not profissional.ativo %}text-slate-500{% endif %}">{{ profissional.nome }}</a>
+    {% if profissional.eh_gerente %}<span class="ml-2 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Gerente</span>{% endif %}
     {% if not profissional.ativo %}<span class="selo-inativo">Inativo</span>{% endif %}
     <p class="truncate text-sm text-slate-500">
       {{ profissional.usuario.email }} · {{ profissional.total_procedimentos }} procedimento{{ profissional.total_procedimentos|pluralize }}
@@ -8,7 +9,7 @@
   </div>
   <form method="post" action="{% url 'equipe:profissional_alternar' profissional.pk %}"
         hx-post="{% url 'equipe:profissional_alternar' profissional.pk %}" hx-target="closest li" hx-swap="outerHTML"
-        {% if profissional.ativo %}hx-confirm="Inativar {{ profissional.nome }}? O acesso ao sistema também será bloqueado."{% endif %}>
+        {% if profissional.ativo %}hx-confirm="Inativar {{ profissional.nome }}? {% if profissional.eh_gerente %}Continuará entrando só como gerente.{% else %}O acesso ao sistema também será bloqueado.{% endif %}"{% endif %}>
     {% csrf_token %}
     <button type="submit" class="btn-pequeno">{% if profissional.ativo %}Inativar{% else %}Reativar{% endif %}</button>
   </form>
