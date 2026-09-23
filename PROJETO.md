@@ -122,6 +122,12 @@ agendado ──► atendido
 - **Registro de presença:** atendido ou faltou só pode ser marcado **depois do horário do agendamento**. É possível corrigir de um para o outro.
 - **Troca de profissional:** ao remarcar, o **gerente** pode passar o agendamento para outro profissional que realize o procedimento (útil para resolver pendências, como férias). O profissional só remarca dentro da própria agenda.
 - **Tela inicial do gerente:** é a agenda do dia com uma coluna por profissional ativo, com aviso de pendências.
+- **Relatórios:**
+  - **Faturamento realizado** é a soma dos atendidos.
+  - **Faturamento previsto** soma atendidos e agendados. Cancelados, faltas e "precisa reagendar" ficam de fora.
+  - **Taxa de faltas** é faltas ÷ (atendidos + faltas). Agendamentos já passados sem registro de presença não entram na conta, e o relatório avisa quando existem.
+  - Os valores usam o preço do momento do agendamento e incluem profissionais inativos.
+  - O período padrão é o mês atual, com limite de um ano.
 - **Agendamento duplo:** o banco de dados (PostgreSQL, *exclusion constraints*) impede sobreposição para o mesmo profissional ou recurso, mesmo com duas requisições simultâneas.
 
 ### 4.7 Fuso horário

@@ -19,6 +19,15 @@ def telefone(valor):
 
 
 @register.filter
+def percentual(fracao):
+    """0.125 -> '12,5%'; None -> '—' (sem base para calcular)."""
+    if fracao is None:
+        return "—"
+    texto = f"{fracao * 100:.1f}".replace(".", ",").removesuffix(",0")
+    return f"{texto}%"
+
+
+@register.filter
 def duracao(minutos):
     """75 -> '1h15', 60 -> '1h', 45 -> '45 min'."""
     horas, resto = divmod(int(minutos), 60)

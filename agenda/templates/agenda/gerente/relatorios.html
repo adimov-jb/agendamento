@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block title %}Relatórios · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Relatórios</h1>
+
+{# Filtros: uma linha acima dos números #}
+<form method="get" class="cartao mt-6 p-4 sm:p-5">
+  {% for erro in form.non_field_errors %}<p class="mb-3 text-sm text-red-600">{{ erro }}</p>{% endfor %}
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+    {% include "partials/campo.html" with campo=form.inicio %}
+    {% include "partials/campo.html" with campo=form.fim %}
+    {% include "partials/campo.html" with campo=form.profissional %}
+    <button type="submit" class="btn-primario">Filtrar</button>
+  </div>
+  <div class="mt-4 flex flex-wrap gap-2">
+    {% for rotulo, inicio, fim in atalhos %}
+      <a href="?inicio={{ inicio|date:'Y-m-d' }}&fim={{ fim|date:'Y-m-d' }}{% if profissional %}&profissional={{ profissional.pk }}{% endif %}"
+         class="btn-pequeno {% if periodo.0 == inicio and periodo.1 == fim %}border-rose-400 bg-rose-50 text-rose-700{% endif %}">{{ rotulo }}</a>
+    {% endfor %}
+  </div>
+</form>
+
+{% if relatorio %}
+{% with t=relatorio.totais %}
+<p class="mt-6 text-sm text-slate-500">
+  De {{ periodo.0|date:"d/m/Y" }} a {{ periodo.1|date:"d/m/Y" }}{% if profissional %} · {{ profissional.nome }}{% endif %}
+</p>
+
+{# Indicadores principais #}
+<div class="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+  <div class="cartao p-4">
+    <p class="text-sm text-slate-500">Atendimentos realizados</p>
+    <p class="mt-1 text-2xl font-semibold sm:text-3xl">{{ t.atendidos }}</p>
+    <p class="mt-1 text-xs text-slate-500">de {{ t.total }} agendamento{{ t.total|pluralize }} no período</p>
+  </div>
+  <div class="cartao p-4">
+    <p class="text-sm text-slate-500">Faturamento realizado</p>
+    <p class="mt-1 text-2xl font-semibold sm:text-3xl">R$ {{ t.realizado|floatformat:"2g" }}</p>
+    <p class="mt-1 text-xs text-slate-500">atendimentos concluídos</p>
+  </div>
+  <div class="cartao p-4">
+    <p class="text-sm text-slate-500">Faturamento previsto</p>
+    <p class="mt-1 text-2xl font-semibold sm:text-3xl">R$ {{ t.previsto|floatformat:"2g" }}</p>
+    <p class="mt-1 text-xs text-slate-500">realizados + agendados</p>
+  </div>
+  <div class="cartao p-4">
+    <p class="text-sm text-slate-500">Taxa de faltas</p>
+    <p class="mt-1 text-2xl font-semibold sm:text-3xl">{{ t.taxa_faltas|percentual }}</p>
+    <p class="mt-1 text-xs text-slate-500">{{ t.faltas }} falta{{ t.faltas|pluralize }} em {{ t.registrados }} com presença registrada</p>
+  </div>
+</div>
+
+{% if t.sem_registro %}
+  <p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+    ⚠ {{ t.sem_registro }} agendamento{{ t.sem_registro|pluralize }} que já {{ t.sem_registro|pluralize:"passou,passaram" }} {{ t.sem_registro|pluralize:"está,estão" }} sem registro de presença.
+    Enquanto não forem marcados como atendido ou faltou, ficam fora do faturamento realizado e da taxa de faltas.
+  </p>
+{% endif %}
+
+{# Por profissional #}
+<section class="mt-8">
+  <h2 class="text-lg font-semibold">Por profissional</h2>
+  {% if relatorio.por_profissional %}
+    <div class="cartao mt-3 overflow-x-auto">
+      <table class="w-full min-w-[46rem] text-sm">
+        <thead class="border-b border-slate-200 text-left text-slate-500">
+          <tr>
+            <th class="px-4 py-2 font-medium">Profissional</th>
+            <th class="px-3 py-2 text-right font-medium">Agendamentos</th>
+            <th class="px-3 py-2 text-right font-medium">Atendidos</th>
+            <th class="px-3 py-2 text-right font-medium">Faltas</th>
+            <th class="px-3 py-2 text-right font-medium">Taxa de faltas</th>
+            <th class="px-3 py-2 text-right font-medium">Cancelados</th>
+            <th class="px-3 py-2 text-right font-medium">A realizar</th>
+            <th class="px-3 py-2 text-right font-medium">Realizado (R$)</th>
+            <th class="px-4 py-2 text-right font-medium">Previsto (R$)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 tabular-nums">
+          {% for l in relatorio.por_profissional %}
+            <tr>
+              <td class="px-4 py-2 font-medium">{{ l.profissional__nome }}</td>
+              <td class="px-3 py-2 text-right">{{ l.total }}</td>
+              <td class="px-3 py-2 text-right">{{ l.atendidos }}</td>
+              <td class="px-3 py-2 text-right">{{ l.faltas }}</td>
+              <td class="px-3 py-2 text-right">{{ l.taxa_faltas|percentual }}</td>
+              <td class="px-3 py-2 text-right">{{ l.cancelados }}</td>
+              <td class="px-3 py-2 text-right">{{ l.a_realizar }}</td>
+              <td class="px-3 py-2 text-right">{{ l.realizado|floatformat:"2g" }}</td>
+              <td class="px-4 py-2 text-right">{{ l.previsto|floatformat:"2g" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        {% if relatorio.por_profissional|length > 1 %}
+          <tfoot class="border-t-2 border-slate-200 font-semibold tabular-nums">
+            <tr>
+              <td class="px-4 py-2">Total</td>
+              <td class="px-3 py-2 text-right">{{ t.total }}</td>
+              <td class="px-3 py-2 text-right">{{ t.atendidos }}</td>
+              <td class="px-3 py-2 text-right">{{ t.faltas }}</td>
+              <td class="px-3 py-2 text-right">{{ t.taxa_faltas|percentual }}</td>
+              <td class="px-3 py-2 text-right">{{ t.cancelados }}</td>
+              <td class="px-3 py-2 text-right">{{ t.a_realizar }}</td>
+              <td class="px-3 py-2 text-right">{{ t.realizado|floatformat:"2g" }}</td>
+              <td class="px-4 py-2 text-right">{{ t.previsto|floatformat:"2g" }}</td>
+            </tr>
+          </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  {% else %}
+    <p class="cartao mt-3 p-5 text-slate-600">Nenhum agendamento no período.</p>
+  {% endif %}
+</section>
+
+{# Clientes que mais faltaram #}
+<section class="mt-8">
+  <h2 class="text-lg font-semibold">Clientes com mais faltas</h2>
+  {% if relatorio.clientes_faltosos %}
+    <div class="cartao mt-3 overflow-x-auto">
+      <table class="w-full min-w-[32rem] text-sm">
+        <thead class="border-b border-slate-200 text-left text-slate-500">
+          <tr>
+            <th class="px-4 py-2 font-medium">Cliente</th>
+            <th class="px-3 py-2 font-medium">Telefone</th>
+            <th class="px-3 py-2 text-right font-medium">Faltas</th>
+            <th class="px-3 py-2 text-right font-medium">Compareceu</th>
+            <th class="px-4 py-2 text-right font-medium">Taxa de faltas</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 tabular-nums">
+          {% for c in relatorio.clientes_faltosos %}
+            <tr>
+              <td class="px-4 py-2 font-medium">{{ c.cliente__nome }}</td>
+              <td class="px-3 py-2"><a href="tel:{{ c.cliente__telefone }}" class="text-rose-600 hover:underline">{{ c.cliente__telefone|telefone }}</a></td>
+              <td class="px-3 py-2 text-right">{{ c.faltas }}</td>
+              <td class="px-3 py-2 text-right">{{ c.atendidos }}</td>
+              <td class="px-4 py-2 text-right">{{ c.taxa_faltas|percentual }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="cartao mt-3 p-5 text-slate-600">Nenhuma falta registrada no período.</p>
+  {% endif %}
+</section>
+
+<details class="mt-8 text-sm text-slate-500">
+  <summary class="cursor-pointer font-medium text-slate-600">Como os números são calculados</summary>
+  <ul class="mt-2 list-disc space-y-1 pl-5">
+    <li>Entram os agendamentos com horário dentro do período, inclusive de profissionais inativos.</li>
+    <li><strong>Faturamento realizado</strong>: soma dos atendidos. <strong>Previsto</strong>: atendidos + agendados (inclui os ainda sem registro de presença). Cancelados, faltas e “precisa reagendar” ficam de fora.</li>
+    <li>Os valores são os do momento do agendamento, mesmo que o preço do procedimento tenha mudado depois.</li>
+    <li><strong>Taxa de faltas</strong>: faltas ÷ (atendidos + faltas). Agendamentos sem registro de presença não entram na conta.</li>
+  </ul>
+</details>
+{% endwith %}
+{% endif %}
+{% endblock %}

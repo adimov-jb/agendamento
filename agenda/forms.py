@@ -101,6 +101,30 @@ class HorarioTrabalhoDiaForm(EstiloMixin, forms.Form):
         return dados
 
 
+class RelatorioForm(EstiloMixin, forms.Form):
+    MAXIMO_DIAS = 366
+
+    inicio = campo_data(label="De")
+    fim = campo_data(label="Até")
+    profissional = forms.ModelChoiceField(
+        label="Profissional", queryset=None, required=False, empty_label="Todos"
+    )
+
+    def __init__(self, *args, profissionais, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["profissional"].queryset = profissionais
+
+    def clean(self):
+        dados = super().clean()
+        inicio, fim = dados.get("inicio"), dados.get("fim")
+        if inicio and fim:
+            if fim < inicio:
+                raise forms.ValidationError("A data final deve ser igual ou posterior à inicial.")
+            if (fim - inicio).days >= self.MAXIMO_DIAS:
+                raise forms.ValidationError("Escolha um período de até um ano.")
+        return dados
+
+
 class BloqueioForm(EstiloMixin, forms.Form):
     data_inicio = campo_data(label="De")
     hora_inicio = campo_hora(label="Hora inicial", required=False)
