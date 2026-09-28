@@ -10,15 +10,18 @@ class ProcedimentoRecursoInline(admin.TabularInline):
 
 @admin.register(Procedimento)
 class ProcedimentoAdmin(admin.ModelAdmin):
-    list_display = ["nome", "duracao_minutos", "intervalo_minutos", "preco", "ativo"]
-    list_filter = ["ativo"]
+    list_display = ["nome", "estabelecimento", "duracao_minutos", "intervalo_minutos", "preco", "ativo"]
+    list_filter = ["estabelecimento", "ativo"]
     inlines = [ProcedimentoRecursoInline]
 
 
 @admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
     list_display = ["nome", "tipo", "ativo"]
-    list_filter = ["tipo", "ativo"]
+    list_filter = ["tipo__estabelecimento", "ativo"]
 
 
-admin.site.register(TipoRecurso)
+@admin.register(TipoRecurso)
+class TipoRecursoAdmin(admin.ModelAdmin):
+    list_display = ["nome", "estabelecimento"]
+    list_filter = ["estabelecimento"]

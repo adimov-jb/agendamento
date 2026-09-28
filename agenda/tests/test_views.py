@@ -153,9 +153,9 @@ def test_salvar_horarios(cliente_ana, ana):
 
 def test_horarios_fora_da_clinica(cliente_ana, ana):
     response = cliente_ana.post(reverse("agenda:horarios"), dados_horarios({0: [("07:00", "12:00")]}))
-    assert "Fora do horário da clínica" in response.content.decode()
+    assert "Fora do horário do estabelecimento" in response.content.decode()
     response = cliente_ana.post(reverse("agenda:horarios"), dados_horarios({6: [("09:00", "12:00")]}))
-    assert "A clínica não abre neste dia." in response.content.decode()
+    assert "O estabelecimento não abre neste dia." in response.content.decode()
     assert ana.horarios.count() == 2  # nada mudou
 
 
@@ -198,9 +198,9 @@ def test_bloqueio_com_fim_antes_do_inicio(cliente_ana, segunda):
 
 
 def test_excluir_bloqueio_apenas_o_proprio(cliente_ana, ana, bia, segunda):
-    meu = Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
-    alheio = Bloqueio.objects.create(profissional=bia, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
-    geral = Bloqueio.objects.create(inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
+    meu = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
+    alheio = Bloqueio.objects.create(estabelecimento=bia.estabelecimento, profissional=bia, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
+    geral = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
 
     assert cliente_ana.post(reverse("agenda:excluir_bloqueio", args=[alheio.pk])).status_code == 404
     assert cliente_ana.post(reverse("agenda:excluir_bloqueio", args=[geral.pk])).status_code == 404
@@ -208,10 +208,12 @@ def test_excluir_bloqueio_apenas_o_proprio(cliente_ana, ana, bia, segunda):
     assert set(Bloqueio.objects.values_list("pk", flat=True)) == {alheio.pk, geral.pk}
 
 
-def test_mudar_horario_da_clinica_sinaliza_agendamentos(cliente_gerente, ana, segunda, marcar):
+def test_mudar_horario_do_estabelecimento_sinaliza_agendamentos(cliente_gerente, ana, segunda, marcar):
     agendamento = marcar(ana, hora(segunda, "09:00"))
     dados = {
-        "nome_clinica": "Clínica",
+        "nome": "Clínica Bella",
+        "tipo": "clinica",
+        "slug": "bella",
         "grade_minutos": "15",
         "antecedencia_minima_horas": "2",
         "antecedencia_maxima_dias": "60",
@@ -219,7 +221,7 @@ def test_mudar_horario_da_clinica_sinaliza_agendamentos(cliente_gerente, ana, se
     for dia in range(5):
         dados.update({f"dia{dia}-aberto": "on", f"dia{dia}-inicio": "12:00", f"dia{dia}-fim": "20:00"})
     response = cliente_gerente.post(reverse("clinica:configuracoes"), dados, follow=True)
-    assert "fora do horário da clínica" in response.content.decode()
+    assert "fora do horário do estabelecimento" in response.content.decode()
     agendamento.refresh_from_db()
     assert agendamento.status == Status.PRECISA_REAGENDAR
     assert HorarioTrabalho.objects.filter(profissional=ana).count() == 2  # horários do profissional não mudam

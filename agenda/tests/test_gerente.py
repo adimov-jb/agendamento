@@ -112,7 +112,7 @@ def test_profissional_nao_troca_o_profissional_ao_remarcar(client, ana, bia, seg
 
 def test_pendencias(cliente_gerente, ana, segunda, marcar):
     agendamento = marcar(ana, hora(segunda, "09:00"))
-    bloqueio = Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "08:00"), fim=hora(segunda, "12:00"))
+    bloqueio = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "08:00"), fim=hora(segunda, "12:00"))
     servicos.aplicar_bloqueio(bloqueio)
 
     response = cliente_gerente.get(reverse("agenda:gerente_pendencias"))
@@ -125,7 +125,7 @@ def test_pendencias(cliente_gerente, ana, segunda, marcar):
     assert agendamento.cancelado_por == "gerente"
 
 
-def test_feriado_fecha_a_clinica(cliente_gerente, ana, bia, limpeza, segunda, marcar):
+def test_feriado_fecha_o_estabelecimento(cliente_gerente, ana, bia, limpeza, segunda, marcar):
     marcar(ana, hora(segunda, "09:00"))
     marcar(bia, hora(segunda, "10:15"))
     response = cliente_gerente.post(
@@ -142,13 +142,18 @@ def test_feriado_fecha_a_clinica(cliente_gerente, ana, bia, limpeza, segunda, ma
 
 
 def test_gerente_nao_exclui_bloqueio_de_profissional(cliente_gerente, ana, segunda):
-    bloqueio = Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
+    bloqueio = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "10:00"))
     assert cliente_gerente.post(reverse("agenda:gerente_excluir_bloqueio", args=[bloqueio.pk])).status_code == 404
 
 
 def test_profissional_ve_fechamento_mas_nao_remove(client, ana, segunda):
-    Bloqueio.objects.create(inicio=hora(segunda, "00:00"), fim=hora(segunda + timedelta(days=1), "00:00"), motivo="Feriado")
+    Bloqueio.objects.create(
+        estabelecimento=ana.estabelecimento,
+        inicio=hora(segunda, "00:00"),
+        fim=hora(segunda + timedelta(days=1), "00:00"),
+        motivo="Feriado",
+    )
     client.force_login(ana.usuario)
     html = client.get(reverse("agenda:bloqueios")).content.decode()
-    assert "Clínica fechada · Feriado" in html
+    assert "Estabelecimento fechado · Feriado" in html
     assert "Remover" not in html

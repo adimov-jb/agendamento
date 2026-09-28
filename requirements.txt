@@ -3,6 +3,7 @@ psycopg[binary]>=3.2,<4
 django-htmx>=1.21,<2
 whitenoise>=6.8,<7
 gunicorn>=23,<24
+Pillow>=11,<12
 
 # Testes
 pytest>=8.3,<9

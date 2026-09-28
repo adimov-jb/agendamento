@@ -13,14 +13,14 @@
     <p class="text-lg font-semibold">{{ a.procedimento.nome }}</p>
     <p><span class="capitalize">{{ a.inicio|date:"l" }}</span>, {{ a.inicio|date:"d \d\e F" }} às {{ a.inicio|time:"H:i" }}</p>
     <p class="text-slate-600">com {{ a.profissional.nome }} · {{ a.duracao_minutos|duracao }}</p>
-    <p class="text-slate-600">R$ {{ a.preco|floatformat:"2g" }}, pago na clínica</p>
+    <p class="text-slate-600">R$ {{ a.preco|floatformat:"2g" }}, pago no estabelecimento</p>
   </div>
 
   <p class="mt-4 text-sm text-slate-500">Guarde este horário. Não enviamos lembretes por mensagem.</p>
 
   <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-    <a href="{% url 'publico:meus' %}" class="btn-secundario">Meus agendamentos</a>
-    <a href="{% url 'core:home' %}" class="btn-primario">Agendar outro</a>
+    <a href="{% url 'publico:meus' estabelecimento_publico.slug %}" class="btn-secundario">Meus agendamentos</a>
+    <a href="{% url 'publico:inicio' estabelecimento_publico.slug %}" class="btn-primario">Agendar outro</a>
   </div>
 </div>
 {% endwith %}

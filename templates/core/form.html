@@ -6,6 +6,7 @@
 <div class="mx-auto max-w-xl">
   <a href="{{ voltar_url }}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
   <h1 class="mt-2 text-2xl font-bold">{{ titulo }}</h1>
+  {% if descricao %}<p class="mt-1 text-slate-600">{{ descricao }}</p>{% endif %}
 
   <form method="post" class="cartao mt-6 space-y-5 p-5 sm:p-6">
     {% csrf_token %}

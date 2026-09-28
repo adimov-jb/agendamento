@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Convite · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  {% if invalido %}
+    <h1 class="text-2xl font-bold">Convite inválido</h1>
+    <p class="mt-2 text-slate-600">Este convite não existe, já foi usado ou expirou. Peça ao gerente do estabelecimento para enviar um novo.</p>
+  {% else %}
+    <h1 class="text-2xl font-bold">Convite para {{ convite.estabelecimento.nome }}</h1>
+    <p class="mt-1 text-slate-600">
+      {{ convite.estabelecimento.get_tipo_display }} · você foi convidado(a) como profissional{% if convite.gerente %} e gerente{% endif %}.
+    </p>
+
+    {% if outro_usuario %}
+      <p class="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        Este convite é para <strong>{{ convite.email }}</strong>, mas você entrou como {{ user.email|default:user.username }}.
+        Saia e entre com o e-mail do convite.
+      </p>
+      <form method="post" action="{% url 'logout' %}" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button type="submit" class="btn-primario w-full">Sair e usar outra conta</button>
+      </form>
+
+    {% elif confirmar %}
+      <form method="post" class="mt-6">
+        {% csrf_token %}
+        <button type="submit" class="btn-primario w-full">Aceitar convite</button>
+      </form>
+
+    {% elif entrar %}
+      <p class="mt-6 text-slate-600">Você já tem login com o e-mail <strong>{{ convite.email }}</strong>. Entre para aceitar o convite.</p>
+      <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="btn-primario mt-4 w-full">Entrar</a>
+
+    {% else %}
+      <form method="post" class="cartao mt-6 space-y-5 p-5 sm:p-6">
+        {% csrf_token %}
+        <p class="text-sm text-slate-600">Crie a sua senha. Você vai entrar com o e-mail <strong>{{ convite.email }}</strong>.</p>
+        {% for erro in form.non_field_errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
+        {% for campo in form %}{% include "partials/campo.html" %}{% endfor %}
+        <button type="submit" class="btn-primario w-full">Criar login e aceitar</button>
+      </form>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

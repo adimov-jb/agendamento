@@ -1,7 +1,6 @@
 from datetime import date, time, timedelta
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import Http404
@@ -10,8 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from clinica.models import DiaSemana, HorarioClinica
-from core.permissions import PERFIL_PROFISSIONAL, atua_como_gerente, perfil_required
+from clinica.models import DiaSemana
+from core.permissions import atua_como_gerente, colaborador_required, profissional_atual, profissional_required
 from equipe.models import Profissional
 
 from . import relatorios, servicos
@@ -23,21 +22,21 @@ Status = Agendamento.Status
 
 # Permissões
 
-profissional_required = perfil_required(PERFIL_PROFISSIONAL)
 
-
-def _origem(user, profissional):
-    if getattr(user, "profissional", None) == profissional:
+def _origem(request, profissional):
+    if profissional_atual(request) == profissional:
         return Agendamento.Origem.PROFISSIONAL
     return Agendamento.Origem.GERENTE
 
 
 def _agendamento_acessivel(request, pk):
-    """O próprio profissional ou o gerente. Para os demais, o agendamento 'não existe'."""
+    """Do estabelecimento em uso, e do próprio profissional ou do gerente. Para os demais, 'não existe'."""
     agendamento = get_object_or_404(
-        Agendamento.objects.select_related("cliente", "procedimento", "profissional"), pk=pk
+        Agendamento.objects.select_related("cliente", "procedimento", "profissional"),
+        pk=pk,
+        estabelecimento=request.estabelecimento,
     )
-    if not (atua_como_gerente(request) or getattr(request.user, "profissional", None) == agendamento.profissional):
+    if not (atua_como_gerente(request) or profissional_atual(request) == agendamento.profissional):
         raise Http404
     return agendamento
 
@@ -109,9 +108,11 @@ def _procedimento_de(profissional, valor):
 
 
 def profissionais_para_remarcar(agendamento):
-    """Profissionais ativos que realizam o procedimento, mais o atual."""
+    """Profissionais ativos do estabelecimento que realizam o procedimento, mais o atual."""
     return Profissional.objects.filter(
-        pk__in=Profissional.objects.filter(ativo=True, procedimentos=agendamento.procedimento).values("pk")
+        pk__in=Profissional.objects.filter(
+            estabelecimento_id=agendamento.estabelecimento_id, ativo=True, procedimentos=agendamento.procedimento
+        ).values("pk")
     ) | Profissional.objects.filter(pk=agendamento.profissional_id)
 
 
@@ -120,7 +121,7 @@ def profissionais_para_remarcar(agendamento):
 
 @profissional_required
 def dia(request):
-    profissional = request.user.profissional
+    profissional = profissional_atual(request)
     data = data_da_url(request)
     itens, cancelados = itens_do_dia(profissional, data)
     return render(
@@ -140,7 +141,7 @@ def dia(request):
 
 @profissional_required
 def semana(request):
-    contexto = contexto_semana(request.user.profissional, data_da_url(request))
+    contexto = contexto_semana(profissional_atual(request), data_da_url(request))
     contexto["url_dia"] = reverse("agenda:dia")
     return render(request, "agenda/semana.html", contexto)
 
@@ -160,7 +161,9 @@ def pagina_novo_agendamento(request, profissional, *, origem, url_retorno, profi
         dados = form.cleaned_data
         try:
             with transaction.atomic():
-                cliente = servicos.obter_cliente(dados["nome"], dados["telefone"], dados["data_nascimento"])
+                cliente = servicos.obter_cliente(
+                    profissional.estabelecimento, dados["nome"], dados["telefone"], dados["data_nascimento"]
+                )
                 agendamento = servicos.agendar(
                     cliente=cliente,
                     profissional=profissional,
@@ -190,17 +193,19 @@ def pagina_novo_agendamento(request, profissional, *, origem, url_retorno, profi
 def novo(request):
     return pagina_novo_agendamento(
         request,
-        request.user.profissional,
+        profissional_atual(request),
         origem=Agendamento.Origem.PROFISSIONAL,
         url_retorno=reverse("agenda:dia"),
     )
 
 
-@login_required
+@colaborador_required
 def horarios_livres(request):
-    """Fragmento HTMX com os horários livres. O gerente pode indicar qualquer profissional."""
+    """Fragmento HTMX com os horários livres. O gerente pode indicar qualquer profissional do estabelecimento."""
     gerente = atua_como_gerente(request)
-    profissional_indicado = escolhido(Profissional.objects.filter(ativo=True), request.GET.get("profissional"))
+    profissional_indicado = escolhido(
+        Profissional.objects.filter(estabelecimento=request.estabelecimento, ativo=True), request.GET.get("profissional")
+    )
     ignorar = None
 
     if request.GET.get("agendamento"):
@@ -212,8 +217,8 @@ def horarios_livres(request):
     else:
         if gerente and profissional_indicado:
             profissional = profissional_indicado
-        elif hasattr(request.user, "profissional"):
-            profissional = request.user.profissional
+        elif profissional_atual(request):
+            profissional = profissional_atual(request)
         else:
             raise PermissionDenied
         procedimento = _procedimento_de(profissional, request.GET.get("procedimento"))
@@ -222,7 +227,7 @@ def horarios_livres(request):
     return render(request, "agenda/_horarios_livres.html", {"horarios": horarios})
 
 
-@login_required
+@colaborador_required
 def detalhe(request, pk):
     agendamento = _agendamento_acessivel(request, pk)
     return render(
@@ -237,7 +242,7 @@ def detalhe(request, pk):
     )
 
 
-@login_required
+@colaborador_required
 def remarcar(request, pk):
     agendamento = _agendamento_acessivel(request, pk)
     if not agendamento.em_aberto:
@@ -278,11 +283,11 @@ def remarcar(request, pk):
 
 
 @require_POST
-@login_required
+@colaborador_required
 def cancelar(request, pk):
     agendamento = _agendamento_acessivel(request, pk)
     try:
-        servicos.cancelar(agendamento, por=_origem(request.user, agendamento.profissional))
+        servicos.cancelar(agendamento, por=_origem(request, agendamento.profissional))
     except servicos.AgendamentoInvalido as erro:
         messages.error(request, str(erro))
     else:
@@ -291,7 +296,7 @@ def cancelar(request, pk):
 
 
 @require_POST
-@login_required
+@colaborador_required
 def presenca(request, pk):
     agendamento = _agendamento_acessivel(request, pk)
     try:
@@ -307,7 +312,7 @@ def presenca(request, pk):
 
 
 def _formularios_horario(profissional, dados=None):
-    clinica = {h.dia_semana: h for h in HorarioClinica.objects.all()}
+    funcionamento = {h.dia_semana: h for h in profissional.estabelecimento.horarios.all()}
     atuais = {}
     for h in profissional.horarios.all():
         atuais.setdefault(h.dia_semana, []).append(h)
@@ -315,17 +320,17 @@ def _formularios_horario(profissional, dados=None):
     formularios = []
     for dia_semana, nome in DiaSemana.choices:
         periodos = atuais.get(dia_semana, [])
-        horario_clinica = clinica.get(dia_semana)
+        aberto = funcionamento.get(dia_semana)
         inicial = {"trabalha": bool(periodos)}
         if periodos:
             inicial.update(inicio1=periodos[0].inicio, fim1=periodos[0].fim)
             if len(periodos) > 1:
                 inicial.update(inicio2=periodos[1].inicio, fim2=periodos[1].fim)
-        elif horario_clinica:
-            inicial.update(inicio1=horario_clinica.inicio, fim1=horario_clinica.fim)
+        elif aberto:
+            inicial.update(inicio1=aberto.inicio, fim1=aberto.fim)
         formularios.append(
             HorarioTrabalhoDiaForm(
-                dados, prefix=f"dia{dia_semana}", initial=inicial, dia=dia_semana, nome_dia=nome, clinica=horario_clinica
+                dados, prefix=f"dia{dia_semana}", initial=inicial, dia=dia_semana, nome_dia=nome, funcionamento=aberto
             )
         )
     return formularios
@@ -333,7 +338,7 @@ def _formularios_horario(profissional, dados=None):
 
 @profissional_required
 def horarios(request):
-    profissional = request.user.profissional
+    profissional = profissional_atual(request)
     dados = request.POST if request.method == "POST" else None
     formularios = _formularios_horario(profissional, dados)
 
@@ -384,7 +389,7 @@ def pagina_relatorio(request, *, url_dia, profissionais=None, profissional=None)
         filtros = form.cleaned_data if dados is not None else {"inicio": inicio_padrao, "fim": fim_padrao}
         filtro_profissional = profissional or filtros.get("profissional")
         contexto.update(
-            relatorio=relatorios.gerar(filtros["inicio"], filtros["fim"], filtro_profissional),
+            relatorio=relatorios.gerar(request.estabelecimento, filtros["inicio"], filtros["fim"], filtro_profissional),
             periodo=(filtros["inicio"], filtros["fim"]),
             profissional=filtros.get("profissional"),
         )
@@ -393,15 +398,16 @@ def pagina_relatorio(request, *, url_dia, profissionais=None, profissional=None)
 
 @profissional_required
 def relatorio(request):
-    return pagina_relatorio(request, profissional=request.user.profissional, url_dia=reverse("agenda:dia"))
+    return pagina_relatorio(request, profissional=profissional_atual(request), url_dia=reverse("agenda:dia"))
 
 
 def pagina_bloqueios(request, profissional, *, url_lista, url_excluir, titulo, descricao):
-    """Lista e cria bloqueios. `profissional=None` trata dos bloqueios gerais da clínica."""
+    """Lista e cria bloqueios. `profissional=None` trata dos bloqueios gerais do estabelecimento."""
     form = BloqueioForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             bloqueio = Bloqueio.objects.create(
+                estabelecimento=request.estabelecimento,
                 profissional=profissional,
                 inicio=form.cleaned_data["inicio"],
                 fim=form.cleaned_data["fim"],
@@ -414,7 +420,7 @@ def pagina_bloqueios(request, profissional, *, url_lista, url_excluir, titulo, d
         return redirect(url_lista)
 
     if profissional is None:
-        proximos = Bloqueio.objects.filter(profissional__isnull=True)
+        proximos = Bloqueio.objects.filter(estabelecimento=request.estabelecimento, profissional__isnull=True)
     else:
         proximos = servicos.bloqueios_de(profissional)
     return render(
@@ -435,7 +441,7 @@ def pagina_bloqueios(request, profissional, *, url_lista, url_excluir, titulo, d
 def bloqueios(request):
     return pagina_bloqueios(
         request,
-        request.user.profissional,
+        profissional_atual(request),
         url_lista=reverse("agenda:bloqueios"),
         url_excluir="agenda:excluir_bloqueio",
         titulo="Bloqueios",
@@ -446,7 +452,7 @@ def bloqueios(request):
 @require_POST
 @profissional_required
 def excluir_bloqueio(request, pk):
-    bloqueio = get_object_or_404(Bloqueio, pk=pk, profissional=request.user.profissional)
+    bloqueio = get_object_or_404(Bloqueio, pk=pk, profissional=profissional_atual(request))
     bloqueio.delete()
     messages.success(request, "Bloqueio removido.")
     return redirect("agenda:bloqueios")

@@ -1,0 +1,13 @@
+{% autoescape off %}Olá, {{ convite.nome }}!
+
+{{ convidou }} convidou você para fazer parte da equipe de {{ convite.estabelecimento.nome }} ({{ convite.estabelecimento.get_tipo_display }}) como profissional{% if convite.gerente %} e gerente{% endif %}.
+
+Para aceitar, abra o link abaixo:
+{{ link }}
+
+Se você já tem login no sistema, entre com este e-mail ({{ convite.email }}). Se ainda não tem, você cria a sua senha pelo próprio link.
+
+O convite vale até {{ convite.expira_em|date:"d/m/Y H:i" }}.
+
+Se você não esperava este convite, ignore este e-mail.
+{% endautoescape %}

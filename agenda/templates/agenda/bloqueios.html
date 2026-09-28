@@ -22,7 +22,7 @@
     <p class="text-sm text-slate-500">
       Agendamentos {% if gerais %}de todos os profissionais {% endif %}no período serão marcados como “precisa reagendar”.
     </p>
-    <button type="submit" class="btn-primario w-full">{% if gerais %}Fechar a clínica neste período{% else %}Bloquear{% endif %}</button>
+    <button type="submit" class="btn-primario w-full">{% if gerais %}Fechar o estabelecimento neste período{% else %}Bloquear{% endif %}</button>
   </form>
 
   <section>
@@ -32,7 +32,7 @@
         <li class="cartao flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div class="min-w-0">
             <p class="font-medium">{{ b.periodo_legivel }}</p>
-            <p class="text-sm text-slate-500">{% if b.geral and not gerais %}Clínica fechada{% if b.motivo %} · {% endif %}{% endif %}{{ b.motivo }}</p>
+            <p class="text-sm text-slate-500">{% if b.geral and not gerais %}Estabelecimento fechado{% if b.motivo %} · {% endif %}{% endif %}{{ b.motivo }}</p>
           </div>
           {% if gerais or not b.geral %}
             <form method="post" action="{% url url_excluir b.pk %}" onsubmit="return confirm('Remover?')">

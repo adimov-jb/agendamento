@@ -37,10 +37,11 @@ def _com_taxa(linha):
     return linha
 
 
-def gerar(data_inicio, data_fim, profissional=None, agora=None):
-    """Relatório dos agendamentos com início entre as datas (inclusive)."""
+def gerar(estabelecimento, data_inicio, data_fim, profissional=None, agora=None):
+    """Relatório dos agendamentos do estabelecimento com início entre as datas (inclusive)."""
     agora = agora or timezone.now()
     agendamentos = Agendamento.objects.filter(
+        estabelecimento=estabelecimento,
         inicio__gte=momento(data_inicio, time.min),
         inicio__lt=momento(data_fim + timedelta(days=1), time.min),
     )

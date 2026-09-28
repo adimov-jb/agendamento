@@ -9,7 +9,7 @@
   </div>
   <form method="post" action="{% url 'equipe:profissional_alternar' profissional.pk %}"
         hx-post="{% url 'equipe:profissional_alternar' profissional.pk %}" hx-target="closest li" hx-swap="outerHTML"
-        {% if profissional.ativo %}hx-confirm="Inativar {{ profissional.nome }}? {% if profissional.eh_gerente %}Continuará entrando só como gerente.{% else %}O acesso ao sistema também será bloqueado.{% endif %}"{% endif %}>
+        {% if profissional.ativo %}hx-confirm="Inativar {{ profissional.nome }}? {% if profissional.eh_gerente %}Continuará entrando só como gerente.{% else %}Perderá o acesso a este estabelecimento.{% endif %}"{% endif %}>
     {% csrf_token %}
     <button type="submit" class="btn-pequeno">{% if profissional.ativo %}Inativar{% else %}Reativar{% endif %}</button>
   </form>

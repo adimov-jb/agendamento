@@ -1,4 +1,4 @@
-"""Telas do gerente: agenda de todos, pendências e bloqueios gerais."""
+"""Telas do gerente: agenda de todos do estabelecimento, pendências e bloqueios gerais."""
 
 from datetime import timedelta
 
@@ -24,15 +24,15 @@ from .views import (
 )
 
 
-def _profissionais_ativos():
-    return Profissional.objects.filter(ativo=True)
+def _profissionais_ativos(request):
+    return Profissional.objects.filter(estabelecimento=request.estabelecimento, ativo=True)
 
 
 @gerente_required
 def dia(request):
     data = data_da_url(request)
     colunas = []
-    for profissional in _profissionais_ativos():
+    for profissional in _profissionais_ativos(request):
         itens, _ = itens_do_dia(profissional, data)
         colunas.append(
             {"profissional": profissional, "itens": itens, "expediente": servicos.expediente(profissional, data)}
@@ -53,7 +53,7 @@ def dia(request):
 
 @gerente_required
 def semana(request):
-    profissionais = _profissionais_ativos()
+    profissionais = _profissionais_ativos(request)
     profissional = escolhido(profissionais, request.GET.get("profissional")) or profissionais.first()
     contexto = {"profissionais": profissionais, "profissional_atual": profissional}
     if profissional:
@@ -65,7 +65,7 @@ def semana(request):
 
 @gerente_required
 def novo(request):
-    profissionais = _profissionais_ativos()
+    profissionais = _profissionais_ativos(request)
     valor = request.POST.get("profissional") or request.GET.get("profissional")
     return pagina_novo_agendamento(
         request,
@@ -79,7 +79,7 @@ def novo(request):
 @gerente_required
 def pendencias(request):
     agendamentos = (
-        Agendamento.objects.filter(status=Agendamento.Status.PRECISA_REAGENDAR)
+        Agendamento.objects.filter(estabelecimento=request.estabelecimento, status=Agendamento.Status.PRECISA_REAGENDAR)
         .select_related("cliente", "profissional", "procedimento")
         .order_by("inicio")
     )
@@ -89,7 +89,11 @@ def pendencias(request):
 @gerente_required
 def relatorios(request):
     # Inclui inativos: o histórico continua valendo
-    return pagina_relatorio(request, profissionais=Profissional.objects.all(), url_dia=reverse("agenda:gerente_dia"))
+    return pagina_relatorio(
+        request,
+        profissionais=Profissional.objects.filter(estabelecimento=request.estabelecimento),
+        url_dia=reverse("agenda:gerente_dia"),
+    )
 
 
 @gerente_required
@@ -100,13 +104,13 @@ def bloqueios(request):
         url_lista=reverse("agenda:gerente_bloqueios"),
         url_excluir="agenda:gerente_excluir_bloqueio",
         titulo="Feriados e fechamentos",
-        descricao="Dias ou períodos em que a clínica inteira fica fechada. Vale para todos os profissionais.",
+        descricao="Dias ou períodos em que o estabelecimento inteiro fica fechado. Vale para todos os profissionais.",
     )
 
 
 @require_POST
 @gerente_required
 def excluir_bloqueio(request, pk):
-    get_object_or_404(Bloqueio, pk=pk, profissional__isnull=True).delete()
+    get_object_or_404(Bloqueio, pk=pk, estabelecimento=request.estabelecimento, profissional__isnull=True).delete()
     messages.success(request, "Fechamento removido.")
     return redirect("agenda:gerente_bloqueios")

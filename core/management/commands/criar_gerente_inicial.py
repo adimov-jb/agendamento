@@ -8,8 +8,9 @@ from django.core.management.base import BaseCommand, CommandError
 
 class Command(BaseCommand):
     help = (
-        "Cria o superusuário (gerente) a partir de GERENTE_EMAIL e GERENTE_SENHA, se ainda não existir. "
-        "Serve para o primeiro deploy em servidores sem acesso ao terminal."
+        "Cria o superusuário a partir de GERENTE_EMAIL e GERENTE_SENHA, se ainda não existir. "
+        "Serve para o primeiro deploy em servidores sem acesso ao terminal. "
+        "Ao entrar, ele cadastra o próprio estabelecimento e passa a ser o gerente dele."
     )
 
     def handle(self, *args, **options):

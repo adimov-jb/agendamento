@@ -15,4 +15,36 @@
 {% else %}
   <p class="cartao mt-6 p-5 text-slate-600">Nenhum profissional cadastrado ainda.</p>
 {% endif %}
+
+{% if convites %}
+  <section class="mt-8">
+    <h2 class="text-lg font-semibold">Convites pendentes</h2>
+    <p class="mt-1 text-sm text-slate-500">O profissional entra na equipe ao abrir o link do e-mail. Se o e-mail não chegou, reenvie ou copie o link e mande de outra forma.</p>
+    <ul class="cartao mt-3 divide-y divide-slate-100">
+      {% for convite in convites %}
+        <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <div class="min-w-0">
+            <p class="font-medium">{{ convite.nome }}
+              {% if convite.gerente %}<span class="ml-2 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Gerente</span>{% endif %}
+              {% if not convite.valido %}<span class="selo-inativo">Expirado</span>{% endif %}
+            </p>
+            <p class="truncate text-sm text-slate-500">{{ convite.email }} · enviado em {{ convite.enviado_em|date:"d/m/Y H:i" }}</p>
+            <input type="text" readonly value="{{ convite.link }}" onclick="this.select()" aria-label="Link do convite"
+                   class="mt-1 w-full rounded-md border-slate-200 bg-slate-50 py-1 text-xs text-slate-500">
+          </div>
+          <div class="flex gap-2">
+            <form method="post" action="{% url 'equipe:convite_reenviar' convite.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-pequeno">Reenviar</button>
+            </form>
+            <form method="post" action="{% url 'equipe:convite_cancelar' convite.pk %}" onsubmit="return confirm('Cancelar o convite para {{ convite.email }}?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-pequeno text-red-700">Cancelar</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
 {% endblock %}

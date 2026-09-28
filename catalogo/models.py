@@ -1,16 +1,22 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from clinica.models import Estabelecimento
+
 
 class TipoRecurso(models.Model):
     """Categoria de recurso físico limitado (ex.: Sala, Laser)."""
 
-    nome = models.CharField("nome", max_length=60, unique=True)
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.PROTECT, related_name="tipos_recurso")
+    nome = models.CharField("nome", max_length=60)
 
     class Meta:
         ordering = ["nome"]
         verbose_name = "tipo de recurso"
         verbose_name_plural = "tipos de recurso"
+        constraints = [
+            models.UniqueConstraint(fields=["estabelecimento", "nome"], name="tipo_recurso_nome_unico"),
+        ]
 
     def __str__(self):
         return self.nome
@@ -39,7 +45,8 @@ class Recurso(models.Model):
 
 
 class Procedimento(models.Model):
-    nome = models.CharField("nome", max_length=100, unique=True)
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.PROTECT, related_name="procedimentos")
+    nome = models.CharField("nome", max_length=100)
     descricao = models.TextField("descrição", blank=True)
     duracao_minutos = models.PositiveSmallIntegerField(
         "duração (minutos)",
@@ -58,6 +65,9 @@ class Procedimento(models.Model):
         ordering = ["nome"]
         verbose_name = "procedimento"
         verbose_name_plural = "procedimentos"
+        constraints = [
+            models.UniqueConstraint(fields=["estabelecimento", "nome"], name="procedimento_nome_unico"),
+        ]
 
     def __str__(self):
         return self.nome

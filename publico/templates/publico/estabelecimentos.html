@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section>
+  <h1 class="text-2xl font-bold sm:text-3xl">Agende seu horário</h1>
+  <p class="mt-2 text-slate-600">Escolha onde você quer ser atendido.</p>
+</section>
+
+{% if estabelecimentos %}
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for e in estabelecimentos %}
+      <a href="{% url 'publico:inicio' e.slug %}" class="cartao group flex items-end justify-between gap-3 p-5 hover:ring-rose-300">
+        <div class="flex min-w-0 items-center gap-3">
+          {% if e.url_foto %}
+            <img src="{{ e.url_foto }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-200">
+          {% endif %}
+          <div class="min-w-0">
+            <h2 class="truncate text-lg font-semibold group-hover:text-rose-700">{{ e.nome }}</h2>
+            <p class="text-sm text-slate-500">{{ e.get_tipo_display }}</p>
+          </div>
+        </div>
+        <span class="btn-primario shrink-0 px-3 py-1.5 text-sm">Agendar</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="cartao mt-6 p-5 text-slate-600">Nenhum estabelecimento com agendamento online no momento.</p>
+{% endif %}
+{% endblock %}

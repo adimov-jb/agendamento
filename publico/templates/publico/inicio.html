@@ -10,7 +10,7 @@
 {% if procedimentos %}
   <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for p in procedimentos %}
-      <a href="{% url 'publico:reservar' p.pk %}" class="cartao group flex flex-col p-5 hover:ring-rose-300">
+      <a href="{% url 'publico:reservar' estabelecimento_publico.slug p.pk %}" class="cartao group flex flex-col p-5 hover:ring-rose-300">
         <h2 class="text-lg font-semibold group-hover:text-rose-700">{{ p.nome }}</h2>
         {% if p.descricao %}<p class="mt-1 text-sm text-slate-600">{{ p.descricao|linebreaksbr }}</p>{% endif %}
         <div class="mt-4 flex items-end justify-between gap-3 pt-2 sm:mt-auto">
@@ -25,6 +25,6 @@
 {% endif %}
 
 <p class="mt-8 text-sm text-slate-500">
-  Já tem horário marcado? <a href="{% url 'publico:meus' %}" class="font-medium text-rose-600 hover:underline">Veja, remarque ou cancele</a>.
+  Já tem horário marcado? <a href="{% url 'publico:meus' estabelecimento_publico.slug %}" class="font-medium text-rose-600 hover:underline">Veja, remarque ou cancele</a>.
 </p>
 {% endblock %}

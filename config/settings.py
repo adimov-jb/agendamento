@@ -112,6 +112,26 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# Nome exibido quando não há um estabelecimento em contexto (página inicial, login)
+APP_NAME = os.environ.get("APP_NAME", "Escolha um estabelecimento")
+
+# Único usuário com o perfil Super Admin (pelo login, que é único): cadastra os estabelecimentos e entra
+# em qualquer um deles como gerente. Fixo no código de propósito, para não poder ser trocado pelo ambiente.
+SUPER_ADMIN_LOGIN = "andredimov@hotmail.com"
+
+# E-mail (convites para colaboradores). Sem EMAIL_HOST, os e-mails aparecem no log do servidor.
+if os.environ.get("EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ["EMAIL_HOST"]
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+    EMAIL_TIMEOUT = 15
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Agendamento <nao-responda@localhost>")
+
 # Quantos proxies confiáveis ficam na frente do app (Render: 1). Define de onde vem o IP real do
 # cliente, usado no limite de tentativas de "Meus agendamentos" (publico/acesso.py).
 PROXIES_CONFIAVEIS = int(os.environ.get("PROXIES_CONFIAVEIS", "0"))

@@ -1,6 +1,6 @@
 # Agendamento
 
-App web de agendamento para clínica de estética. Premissas e regras de negócio em [PROJETO.md](PROJETO.md).
+App web de agendamento para vários estabelecimentos (clínicas, barbearias e salões de beleza). Premissas e regras de negócio em [PROJETO.md](PROJETO.md).
 
 Stack: Django + HTMX + Tailwind CSS + PostgreSQL, tudo em Docker. Basta ter o Docker instalado.
 
@@ -14,19 +14,21 @@ docker compose exec web python manage.py createsuperuser
 
 Acesse http://localhost:8000 (ou a porta definida em `WEB_PORT` no `.env`).
 
-- **Área da equipe:** `/entrar/`. O superusuário conta como gerente. Outros gerentes são usuários no grupo "Gerente" (via `/admin/`).
-- **Profissionais:** o gerente os cadastra em *Profissionais*, definindo o e-mail e a senha inicial de cada um.
+- **Super Admin:** só o login `andredimov@hotmail.com` (fixo em `SUPER_ADMIN_LOGIN`, em `config/settings.py`). Cadastra os estabelecimentos (nome, tipo e endereço) e entra em qualquer um deles como gerente.
+- **Área da equipe:** `/entrar/`. Quem participa de mais de um estabelecimento escolhe, ao entrar, o estabelecimento e o perfil (gerente ou profissional).
+- **Profissionais:** o gerente os cadastra em *Profissionais* informando nome e e-mail; o sistema envia um convite por e-mail. Pelo link, o profissional cria a senha (ou entra com o login que já tem, se já atua em outro estabelecimento). Em desenvolvimento, sem `EMAIL_HOST`, o e-mail aparece em `docker compose logs web`; o link também fica na lista de convites pendentes.
+- **Clientes:** cada estabelecimento tem a sua página, em `/<endereço>/` (ex.: `/barbearia-do-ze/`). A página inicial `/` lista os estabelecimentos, ou vai direto para ele se só houver um.
 
 ## Estrutura
 
 | App | Conteúdo |
 |---|---|
-| `core` | Layout, login, permissões (`eh_gerente`), painel inicial |
-| `clinica` | Configuração da clínica (regras de agendamento) e horário de funcionamento |
+| `core` | Layout, login, permissões e escolha do estabelecimento/perfil (`core/permissions.py`), painel inicial |
+| `clinica` | Estabelecimentos (tipo, endereço, foto, regras de agendamento) e horário de funcionamento. A foto é reduzida para WebP de até 800px e guardada no banco, porque o disco do Render é apagado a cada deploy. O nome do app ficou `clinica` por compatibilidade com o banco; na interface é "Estabelecimento" |
 | `catalogo` | Procedimentos, tipos de recurso e recursos (salas/equipamentos) |
-| `equipe` | Profissionais e seus logins |
+| `equipe` | Profissionais de cada estabelecimento e convites por e-mail |
 | `agenda` | Clientes, horários de trabalho, bloqueios, agendamentos e o cálculo de disponibilidade (`agenda/servicos.py`). Telas do profissional e do gerente, incluindo relatórios |
-| `publico` | Área do cliente, sem login: agendamento online e "Meus agendamentos" (telefone + data de nascimento) |
+| `publico` | Área do cliente, sem login, em `/<endereço do estabelecimento>/`: agendamento online e "Meus agendamentos" (telefone + data de nascimento) |
 
 ## Dia a dia
 
@@ -65,6 +67,8 @@ No Render: **New → Web Service**, escolha o repositório, runtime **Docker**, 
 | `POSTGRES_SSLMODE` | `require` (Neon) |
 | `POSTGRES_POOLER` | `1` só se usar o host com `-pooler` do Neon |
 | `PROXIES_CONFIAVEIS` | `1` |
-| `GERENTE_EMAIL` / `GERENTE_SENHA` | login do primeiro gerente (pode remover depois do primeiro deploy) |
+| `GERENTE_EMAIL` / `GERENTE_SENHA` | cria o primeiro usuário, se ainda não existir. Use `andredimov@hotmail.com` para que ele seja o Super Admin (pode remover depois do primeiro deploy) |
+| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | servidor SMTP para os convites e a recuperação de senha |
+| `DEFAULT_FROM_EMAIL` | remetente dos e-mails (ex.: `Agendamento <nao-responda@seudominio.com>`) |
 
 Em *Settings*, use `/health/` como **Health Check Path**.

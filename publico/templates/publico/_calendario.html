@@ -3,7 +3,7 @@
 {% else %}
   <div class="max-w-sm">
     <div class="flex items-center justify-between">
-      {% url 'publico:calendario' procedimento.pk as url_calendario %}
+      {% url 'publico:calendario' estabelecimento_publico.slug procedimento.pk as url_calendario %}
       <button type="button" class="btn-pequeno disabled:invisible" aria-label="Mês anterior"
               {% if mes_anterior %}hx-get="{{ url_calendario }}?mes={{ mes_anterior.isoformat }}" hx-target="#calendario" hx-include="[name='profissional']"{% else %}disabled{% endif %}>←</button>
       <p class="font-medium">{{ mes|date:"F \d\e Y" }}</p>

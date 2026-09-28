@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from catalogo.models import Recurso
-from clinica.models import Configuracao, HorarioClinica
+from clinica.models import HorarioFuncionamento
 from equipe.models import Profissional
 
 from .models import Agendamento, AgendamentoRecurso, Bloqueio, Cliente
@@ -37,13 +37,15 @@ def _alinhar(instante, grade_minutos):
 
 
 def expediente(profissional, data):
-    """Períodos em que o profissional atende na data: horário de trabalho ∩ horário da clínica."""
-    clinica = HorarioClinica.objects.filter(dia_semana=data.weekday()).first()
-    if clinica is None:
+    """Períodos em que o profissional atende na data: horário de trabalho ∩ horário do estabelecimento."""
+    aberto = HorarioFuncionamento.objects.filter(
+        estabelecimento_id=profissional.estabelecimento_id, dia_semana=data.weekday()
+    ).first()
+    if aberto is None:
         return []
     periodos = []
     for horario in profissional.horarios.filter(dia_semana=data.weekday()):
-        inicio, fim = max(horario.inicio, clinica.inicio), min(horario.fim, clinica.fim)
+        inicio, fim = max(horario.inicio, aberto.inicio), min(horario.fim, aberto.fim)
         if inicio < fim:
             periodos.append((momento(data, inicio), momento(data, fim)))
     return periodos
@@ -55,8 +57,10 @@ def dentro_do_expediente(profissional, inicio, fim):
 
 
 def bloqueios_de(profissional):
-    """Bloqueios do profissional mais os bloqueios gerais da clínica."""
-    return Bloqueio.objects.filter(Q(profissional=profissional) | Q(profissional__isnull=True))
+    """Bloqueios do profissional mais os bloqueios gerais do estabelecimento dele."""
+    return Bloqueio.objects.filter(
+        Q(profissional=profissional) | Q(profissional__isnull=True, estabelecimento_id=profissional.estabelecimento_id)
+    )
 
 
 def horarios_disponiveis(profissional, procedimento, data, *, respeitar_antecedencia=True, ignorar=None, agora=None):
@@ -66,7 +70,7 @@ def horarios_disponiveis(profissional, procedimento, data, *, respeitar_antecede
     `respeitar_antecedencia` aplica a antecedência mínima/máxima (só para agendamentos do cliente).
     """
     agora = agora or timezone.now()
-    config = Configuracao.atual()
+    config = profissional.estabelecimento
 
     limite = agora
     if respeitar_antecedencia:
@@ -123,10 +127,10 @@ def horarios_disponiveis(profissional, procedimento, data, *, respeitar_antecede
     return livres
 
 
-def obter_cliente(nome, telefone, data_nascimento=None):
-    """O telefone identifica o cliente. Completa a data de nascimento se ainda não houver."""
+def obter_cliente(estabelecimento, nome, telefone, data_nascimento=None):
+    """O telefone identifica o cliente no estabelecimento. Completa a data de nascimento se ainda não houver."""
     cliente, criado = Cliente.objects.get_or_create(
-        telefone=telefone, defaults={"nome": nome, "data_nascimento": data_nascimento}
+        estabelecimento=estabelecimento, telefone=telefone, defaults={"nome": nome, "data_nascimento": data_nascimento}
     )
     if not criado and data_nascimento and not cliente.data_nascimento:
         cliente.data_nascimento = data_nascimento
@@ -169,6 +173,9 @@ def _alocar_recursos(agendamento):
 
 
 def agendar(*, cliente, profissional, procedimento, inicio, origem, respeitar_antecedencia=True):
+    if cliente.estabelecimento_id != profissional.estabelecimento_id:
+        raise AgendamentoInvalido("O cliente e o profissional são de estabelecimentos diferentes.")
+    # O procedimento é do estabelecimento do profissional, já que ele o realiza
     if not profissional.ativo or not profissional.procedimentos.filter(pk=procedimento.pk, ativo=True).exists():
         raise AgendamentoInvalido("Este profissional não realiza este procedimento.")
     try:
@@ -176,6 +183,7 @@ def agendar(*, cliente, profissional, procedimento, inicio, origem, respeitar_an
             _travar(profissional)
             _verificar_horario(profissional, procedimento, inicio, respeitar_antecedencia)
             agendamento = Agendamento.objects.create(
+                estabelecimento_id=profissional.estabelecimento_id,
                 cliente=cliente,
                 profissional=profissional,
                 procedimento=procedimento,
@@ -199,7 +207,9 @@ def reagendar(agendamento, inicio, *, profissional=None, respeitar_antecedencia=
         raise AgendamentoInvalido("Só é possível remarcar agendamentos em aberto.")
     novo = profissional or agendamento.profissional
     if novo != agendamento.profissional and (
-        not novo.ativo or not novo.procedimentos.filter(pk=agendamento.procedimento_id).exists()
+        novo.estabelecimento_id != agendamento.estabelecimento_id
+        or not novo.ativo
+        or not novo.procedimentos.filter(pk=agendamento.procedimento_id).exists()
     ):
         raise AgendamentoInvalido("Este profissional não realiza este procedimento.")
     try:
@@ -250,7 +260,10 @@ def _sinalizar_reagendamento(agendamentos):
 def aplicar_bloqueio(bloqueio):
     # Só o que ainda não terminou: agendamentos passados não são remarcados
     afetados = Agendamento.objects.filter(
-        status=Status.AGENDADO, inicio__lt=bloqueio.fim, fim__gt=max(bloqueio.inicio, timezone.now())
+        estabelecimento_id=bloqueio.estabelecimento_id,
+        status=Status.AGENDADO,
+        inicio__lt=bloqueio.fim,
+        fim__gt=max(bloqueio.inicio, timezone.now()),
     )
     if not bloqueio.geral:
         afetados = afetados.filter(profissional_id=bloqueio.profissional_id)

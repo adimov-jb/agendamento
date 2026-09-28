@@ -9,16 +9,16 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def sala():
-    tipo = TipoRecurso.objects.create(nome="Sala")
+def sala(estabelecimento):
+    tipo = TipoRecurso.objects.create(estabelecimento=estabelecimento, nome="Sala")
     Recurso.objects.create(tipo=tipo, nome="Sala 1")
     Recurso.objects.create(tipo=tipo, nome="Sala 2")
     return tipo
 
 
 @pytest.fixture
-def laser():
-    tipo = TipoRecurso.objects.create(nome="Laser")
+def laser(estabelecimento):
+    tipo = TipoRecurso.objects.create(estabelecimento=estabelecimento, nome="Laser")
     Recurso.objects.create(tipo=tipo, nome="Laser 1")
     return tipo
 
@@ -53,6 +53,7 @@ def test_cria_procedimento_com_recursos(cliente_gerente, sala, laser):
     assert response.status_code == 302
 
     procedimento = Procedimento.objects.get()
+    assert procedimento.estabelecimento.slug == "bella"
     assert procedimento.preco == Decimal("150.00")
     assert procedimento.tempo_total_minutos == 75
     assert {(r.tipo.nome, r.quantidade) for r in procedimento.recursos.all()} == {("Sala", 1), ("Laser", 1)}
@@ -117,8 +118,8 @@ def test_edita_e_remove_recurso(cliente_gerente, sala):
     assert procedimento.recursos.count() == 0
 
 
-def test_inativar_procedimento_via_htmx(cliente_gerente):
-    procedimento = Procedimento.objects.create(nome="Peeling", duracao_minutos=30, preco=100)
+def test_inativar_procedimento_via_htmx(cliente_gerente, estabelecimento):
+    procedimento = Procedimento.objects.create(estabelecimento=estabelecimento, nome="Peeling", duracao_minutos=30, preco=100)
     url = reverse("catalogo:procedimento_alternar", args=[procedimento.pk])
 
     response = cliente_gerente.post(url, HTTP_HX_REQUEST="true")
@@ -134,14 +135,16 @@ def test_inativar_procedimento_via_htmx(cliente_gerente):
     assert procedimento.ativo
 
 
-def test_alternar_exige_post(cliente_gerente):
-    procedimento = Procedimento.objects.create(nome="Peeling", duracao_minutos=30, preco=100)
+def test_alternar_exige_post(cliente_gerente, estabelecimento):
+    procedimento = Procedimento.objects.create(estabelecimento=estabelecimento, nome="Peeling", duracao_minutos=30, preco=100)
     response = cliente_gerente.get(reverse("catalogo:procedimento_alternar", args=[procedimento.pk]))
     assert response.status_code == 405
 
 
-def test_lista_de_procedimentos(cliente_gerente, sala):
-    procedimento = Procedimento.objects.create(nome="Peeling", duracao_minutos=75, intervalo_minutos=15, preco=1200)
+def test_lista_de_procedimentos(cliente_gerente, estabelecimento, sala):
+    procedimento = Procedimento.objects.create(
+        estabelecimento=estabelecimento, nome="Peeling", duracao_minutos=75, intervalo_minutos=15, preco=1200
+    )
     procedimento.recursos.create(tipo=sala, quantidade=1)
     html = cliente_gerente.get(reverse("catalogo:procedimentos")).content.decode()
     assert "Peeling" in html
@@ -171,3 +174,61 @@ def test_inativar_recurso(cliente_gerente, laser):
     recurso = laser.recursos.get()
     cliente_gerente.post(reverse("catalogo:recurso_alternar", args=[recurso.pk]), HTTP_HX_REQUEST="true")
     assert laser.unidades_ativas() == 0
+
+
+def test_nome_repetido_no_mesmo_estabelecimento(cliente_gerente):
+    cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados_procedimento())
+    response = cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados_procedimento(nome="LIMPEZA DE PELE"))
+    assert "Já existe um(a) procedimento com este nome." in response.content.decode()
+    assert Procedimento.objects.count() == 1
+
+
+# Cada estabelecimento com o seu catálogo
+
+
+@pytest.fixture
+def da_barbearia(outro_estabelecimento):
+    """Catálogo da Barbearia do Zé: corte e cadeira."""
+    cadeira = TipoRecurso.objects.create(estabelecimento=outro_estabelecimento, nome="Cadeira")
+    Recurso.objects.create(tipo=cadeira, nome="Cadeira 1")
+    corte = Procedimento.objects.create(
+        estabelecimento=outro_estabelecimento, nome="Limpeza de pele", duracao_minutos=30, preco=50
+    )
+    return corte, cadeira
+
+
+def test_listas_mostram_so_o_estabelecimento_em_uso(cliente_gerente, sala, da_barbearia):
+    procedimentos = cliente_gerente.get(reverse("catalogo:procedimentos")).context["procedimentos"]
+    assert not procedimentos
+    tipos = cliente_gerente.get(reverse("catalogo:recursos")).context["tipos"]
+    assert [t.nome for t in tipos] == ["Sala"]
+
+
+def test_mesmo_nome_em_outro_estabelecimento(cliente_gerente, da_barbearia):
+    # A barbearia já tem "Limpeza de pele": na clínica o nome continua livre
+    response = cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados_procedimento())
+    assert response.status_code == 302
+
+
+def test_nao_mexe_no_catalogo_de_outro_estabelecimento(cliente_gerente, da_barbearia):
+    corte, cadeira = da_barbearia
+    recurso = cadeira.recursos.get()
+    assert cliente_gerente.get(reverse("catalogo:procedimento_editar", args=[corte.pk])).status_code == 404
+    assert cliente_gerente.post(reverse("catalogo:procedimento_alternar", args=[corte.pk])).status_code == 404
+    assert cliente_gerente.get(reverse("catalogo:tipo_editar", args=[cadeira.pk])).status_code == 404
+    assert cliente_gerente.get(reverse("catalogo:recurso_editar", args=[recurso.pk])).status_code == 404
+    assert cliente_gerente.post(reverse("catalogo:recurso_alternar", args=[recurso.pk])).status_code == 404
+
+
+def test_recursos_de_outro_estabelecimento_nao_sao_oferecidos(cliente_gerente, sala, da_barbearia):
+    _, cadeira = da_barbearia
+    form = cliente_gerente.get(reverse("catalogo:procedimento_novo")).context["formset"].forms[0]
+    assert list(form.fields["tipo"].queryset) == [sala]
+
+    response = cliente_gerente.post(reverse("catalogo:procedimento_novo"), dados_procedimento([(cadeira, 1)]))
+    assert response.status_code == 200  # escolha inválida
+    assert not Procedimento.objects.filter(estabelecimento__slug="bella").exists()
+
+    response = cliente_gerente.post(reverse("catalogo:recurso_novo"), {"tipo": cadeira.pk, "nome": "Cadeira 2"})
+    assert response.status_code == 200
+    assert cadeira.recursos.count() == 1

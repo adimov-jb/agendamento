@@ -7,7 +7,7 @@ from django.db.models import F, Func, Q
 from django.utils import timezone
 
 from catalogo.models import Procedimento, Recurso
-from clinica.models import DiaSemana
+from clinica.models import DiaSemana, Estabelecimento
 from equipe.models import Profissional
 
 
@@ -22,8 +22,11 @@ def sobreposicao_de_periodo():
 
 
 class Cliente(models.Model):
+    """Cliente de um estabelecimento. O telefone o identifica dentro do estabelecimento."""
+
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.PROTECT, related_name="clientes")
     nome = models.CharField("nome", max_length=100)
-    telefone = models.CharField("telefone", max_length=20, unique=True, help_text="Formato +5511999999999.")
+    telefone = models.CharField("telefone", max_length=20, help_text="Formato +5511999999999.")
     data_nascimento = models.DateField("data de nascimento", null=True, blank=True)
     consentimento_em = models.DateTimeField("consentimento LGPD em", null=True, blank=True)
     criado_em = models.DateTimeField("criado em", auto_now_add=True)
@@ -32,6 +35,9 @@ class Cliente(models.Model):
         ordering = ["nome"]
         verbose_name = "cliente"
         verbose_name_plural = "clientes"
+        constraints = [
+            models.UniqueConstraint(fields=["estabelecimento", "telefone"], name="cliente_telefone_unico"),
+        ]
 
     def __str__(self):
         return self.nome
@@ -58,13 +64,14 @@ class HorarioTrabalho(models.Model):
 
 
 class Bloqueio(models.Model):
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.PROTECT, related_name="bloqueios")
     profissional = models.ForeignKey(
         Profissional,
         on_delete=models.CASCADE,
         related_name="bloqueios",
         null=True,
         blank=True,
-        help_text="Vazio = bloqueio geral da clínica (vale para todos).",
+        help_text="Vazio = bloqueio geral do estabelecimento (vale para todos).",
     )
     inicio = models.DateTimeField("início")
     fim = models.DateTimeField("fim")
@@ -80,7 +87,7 @@ class Bloqueio(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.profissional or 'Clínica'} · {self.periodo_legivel()}"
+        return f"{self.profissional or self.estabelecimento} · {self.periodo_legivel()}"
 
     @property
     def geral(self):
@@ -116,6 +123,7 @@ class Agendamento(models.Model):
     # Status que ainda podem ser remarcados ou cancelados
     EM_ABERTO = [Status.AGENDADO, Status.PRECISA_REAGENDAR]
 
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.PROTECT, related_name="agendamentos")
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="agendamentos")
     profissional = models.ForeignKey(Profissional, on_delete=models.PROTECT, related_name="agendamentos")
     procedimento = models.ForeignKey(Procedimento, on_delete=models.PROTECT, related_name="agendamentos")

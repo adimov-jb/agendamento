@@ -1,14 +1,14 @@
-# Projeto: Agendamento para Clínica de Estética
+# Projeto: Agendamento para Clínicas, Barbearias e Salões de Beleza
 
 > Documento de premissas do projeto. Serve como fonte de verdade para o desenvolvimento.
 > Itens marcados com **[suposição]** não foram confirmados explicitamente e devem ser revisados.
-> Última atualização: 2026-09-22.
+> Última atualização: 2026-09-28.
 
 ---
 
 ## 1. Visão geral
 
-Aplicação web para **uma única clínica/estúdio de estética** (um endereço, vários profissionais) gerenciar agendamentos de procedimentos.
+Aplicação web para **vários estabelecimentos** gerenciarem agendamentos. Cada estabelecimento é de um tipo: **Clínica**, **Barbearia** ou **Salão de Beleza**. Tudo (equipe, procedimentos, recursos, clientes, bloqueios e agendamentos) pertence a um estabelecimento, e cada tela mostra só os dados do estabelecimento em uso.
 
 - Clientes agendam sozinhos, pelo celular ou pelo computador, **sem criar conta**.
 - O gerente também agenda, para quem liga ou manda WhatsApp.
@@ -22,16 +22,20 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
 
 | Termo | Significado |
 |---|---|
+| **Estabelecimento** | Clínica, barbearia ou salão. Tem nome, tipo, endereço da página de agendamento (ex.: `/barbearia-do-ze/`), regras de agendamento e horário de funcionamento. |
+| **Colaborador** | Usuário que atua em um ou mais estabelecimentos, como gerente e/ou profissional, com um único login. |
 | **Procedimento** | Serviço oferecido (ex.: limpeza de pele, design de sobrancelha, depilação a laser). Tem duração, intervalo e preço. |
 | **Duração** | Tempo do atendimento em si, que é o tempo exibido ao cliente. |
 | **Intervalo** | Tempo após o atendimento para higienizar a sala, trocar materiais etc. Bloqueia a agenda, mas não aparece para o cliente. |
 | **Tipo de recurso / Recurso** | Categoria de item físico limitado (ex.: tipo *Sala*) e suas unidades (Sala 1, Sala 2, Sala 3). |
-| **Horário da clínica** | Horário de funcionamento geral. Limita o horário de trabalho dos profissionais. |
-| **Bloqueio** | Período sem atendimento. Pode ser **do profissional** (folga, férias) ou **geral da clínica** (feriado, reforma). |
+| **Horário de funcionamento** | Horário do estabelecimento. Limita o horário de trabalho dos profissionais. |
+| **Bloqueio** | Período sem atendimento. Pode ser **do profissional** (folga, férias) ou **geral do estabelecimento** (feriado, reforma). |
 | **Grade de horários** | Espaçamento entre os horários oferecidos (ex.: 9:00, 9:15, 9:30 com uma grade de 15 min). |
 | **Anamnese** | Ficha de saúde do cliente. **Fora do escopo da v1.** |
 
 ## 3. Perfis de usuário
+
+Super Admin, Gerente, Profissional e Cliente. O Super Admin está descrito em 3.4.
 
 ### 3.1 Cliente (sem login)
 - Agenda um procedimento **sempre escolhendo um profissional específico**. Não existe a opção "qualquer profissional".
@@ -42,7 +46,7 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
 - Não recebe notificações na v1: a confirmação aparece apenas na tela.
 
 ### 3.2 Profissional (com login)
-- Define o **horário de trabalho semanal** (por dia da semana, com pausas como almoço), sempre dentro do horário da clínica.
+- Define o **horário de trabalho semanal** (por dia da semana, com pausas como almoço), sempre dentro do horário do estabelecimento.
 - Cria **bloqueios** pontuais (folgas, férias, compromissos).
 - **Cria, move e cancela** agendamentos na própria agenda.
 - Marca o status do atendimento: **atendido** ou **faltou**.
@@ -50,7 +54,7 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
 
 ### 3.3 Gerente (com login)
 - **Cadastros** (criar, alterar, inativar):
-  - Profissionais, com os procedimentos que cada um realiza (definidos pelo gerente). Ao cadastrar, o gerente define o e-mail de login e uma senha inicial. Inativar o profissional bloqueia o login.
+  - Profissionais, com os procedimentos que cada um realiza (definidos pelo gerente). Ao cadastrar, o gerente informa nome e e-mail e o sistema envia um **convite por e-mail**; o profissional vira colaborador ao aceitar, criando a senha ou usando o login que já tem. Inativar o profissional tira o acesso dele **àquele estabelecimento** (o login continua valendo nos outros).
   - Procedimentos: nome, duração, intervalo, preço e recursos necessários
   - Tipos de recurso e recursos (salas e equipamentos)
 - **Age em qualquer agenda**: cria, move e cancela agendamentos de qualquer profissional. Também faz o papel de recepção; **não existe perfil de recepcionista**.
@@ -59,12 +63,21 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
   - Atendimentos por período e por profissional
   - Faturamento previsto
   - Taxa de faltas por cliente e por profissional
-- **Configurações da clínica**:
-  - Horário de funcionamento da clínica (por dia da semana)
+- **Configurações do estabelecimento**:
+  - Nome, tipo (Clínica, Barbearia ou Salão de Beleza) e endereço da página de agendamento
+  - Horário de funcionamento (por dia da semana)
   - Bloqueios gerais (feriados, reformas), que valem para todos os profissionais
   - Grade de horários (5, 10, 15 ou 30 min)
   - Antecedência mínima para agendar (ex.: 2h)
   - Antecedência máxima para agendar (ex.: 60 dias)
+
+### 3.4 Vários estabelecimentos
+- **Super Admin:** perfil de um único usuário (login `andredimov@hotmail.com`). Só ele **cadastra estabelecimentos**, escolhendo o tipo, e pode **entrar em qualquer estabelecimento como gerente**, sem precisar estar cadastrado como gerente dele. Depois de cadastrar, ele convida a equipe; quem vai administrar recebe o convite com "também será gerente".
+- Um usuário pode ser **gerente e/ou profissional em vários estabelecimentos**, com o mesmo login.
+- **Ao entrar**, o colaborador escolhe o estabelecimento e o perfil. Com uma única opção, entra direto. Dá para trocar pelo topo da página.
+- **Convites** valem 7 dias, podem ser reenviados (gera um link novo) ou cancelados. O convite pode já dar o perfil de gerente.
+- Cada colaborador cuida da própria senha ("Esqueci minha senha" no login).
+- Os dados existentes antes dos vários estabelecimentos ficaram no primeiro estabelecimento (tipo Clínica).
 
 > Inativar em vez de excluir: profissionais, procedimentos e recursos inativos somem das opções de agendamento, mas continuam no histórico e nos relatórios.
 
@@ -80,7 +93,7 @@ Aplicação web para **uma única clínica/estúdio de estética** (um endereço
 ### 4.2 Disponibilidade
 
 Um horário está disponível quando, durante **todo o período (duração + intervalo)**:
-1. A clínica está aberta e não há bloqueio geral.
+1. O estabelecimento está aberto e não há bloqueio geral.
 2. O profissional está dentro do horário de trabalho.
 3. O profissional não tem bloqueio nem outro agendamento.
 4. Há unidades livres de cada tipo de recurso exigido **[suposição: o intervalo também ocupa o recurso, já que é tempo de higienização da sala]**.
@@ -108,14 +121,14 @@ agendado ──► atendido
 - Bloqueios (do profissional ou gerais) sobre horários já agendados são **permitidos**. Os agendamentos afetados viram **precisa reagendar** e aparecem em destaque para o gerente resolver.
 
 ### 4.5 Cliente
-- O cliente é identificado pelo **telefone**, normalizado (ex.: +5511999999999). O mesmo telefone corresponde ao mesmo cliente.
+- O cliente é identificado pelo **telefone**, normalizado (ex.: +5511999999999), **dentro do estabelecimento**: o mesmo telefone em dois estabelecimentos são dois clientes, e "Meus agendamentos" mostra só os do estabelecimento da página.
 - Para acessar os agendamentos, o cliente informa **telefone + data de nascimento**; os dois precisam bater.
 - Tentativas de acesso têm **limite (rate limiting)** para impedir que alguém teste datas até acertar.
 - **LGPD:** mostrar um aviso ou checkbox de consentimento no primeiro agendamento e coletar só os dados necessários.
 
 ### 4.6 Decisões da implementação da agenda
-- **Horário de trabalho:** até **dois períodos por dia** (ex.: 09:00–12:00 e 13:00–18:00), sempre dentro do horário da clínica.
-- **Mudanças de horário:** se o profissional muda os horários de trabalho, ou o gerente muda o horário da clínica, os agendamentos futuros que ficam fora do expediente viram **precisa reagendar**, igual aos bloqueios.
+- **Horário de trabalho:** até **dois períodos por dia** (ex.: 09:00–12:00 e 13:00–18:00), sempre dentro do horário do estabelecimento.
+- **Mudanças de horário:** se o profissional muda os horários de trabalho, ou o gerente muda o horário do estabelecimento, os agendamentos futuros que ficam fora do expediente viram **precisa reagendar**, igual aos bloqueios.
 - **Agendamento pela equipe:** a data de nascimento do cliente é **opcional**. Se o cliente agendar online depois, com o mesmo telefone, a data é completada.
 - **Mesmo telefone, mesmo cliente:** um telefone já cadastrado mantém o nome existente.
 - **Horário e recursos liberados:** um agendamento em **precisa reagendar** ou **cancelado** deixa de ocupar o horário e as salas e equipamentos.
@@ -146,11 +159,11 @@ agendado ──► atendido
 ## 5. Fora do escopo da v1
 
 - Notificações ao cliente (WhatsApp, SMS, e-mail)
-- Pagamento online, sinal ou Pix (o pagamento é feito na clínica)
+- Pagamento online, sinal ou Pix (o pagamento é feito no estabelecimento)
 - Pacotes e sessões
 - Anamnese e ficha de saúde
 - Opção "qualquer profissional"
-- Múltiplas unidades ou modelo SaaS
+- Cobrança/planos por estabelecimento (modelo SaaS pago)
 - Duração ou preço diferentes por profissional
 - Vários procedimentos ou profissionais em uma única visita
 - Perfil de recepcionista
@@ -178,20 +191,21 @@ agendado ──► atendido
 - Configuração via variáveis de ambiente (`.env`, com `.env.example` versionado).
 - **Hospedagem de produção: definir depois.** A imagem deve ser pronta para qualquer servidor com Docker.
 
-## 7. Modelo de dados inicial (rascunho)
+## 7. Modelo de dados
 
-- **Profissional**: usuário, nome, ativo, procedimentos que realiza
-- **HorarioClinica**: dia da semana, início, fim
+- **Estabelecimento**: nome, tipo, endereço (slug), gerentes, grade (min), antecedência mínima, antecedência máxima
+- **Profissional**: usuário, estabelecimento, nome, ativo, procedimentos que realiza (um por usuário em cada estabelecimento)
+- **Convite**: estabelecimento, e-mail, nome, também gerente, procedimentos, token, enviado em, aceito em
+- **HorarioFuncionamento**: estabelecimento, dia da semana, início, fim
 - **HorarioTrabalho**: profissional, dia da semana, início, fim (várias linhas por dia para permitir pausas)
-- **Bloqueio**: profissional (vazio = bloqueio geral da clínica), início, fim, motivo
-- **Procedimento**: nome, descrição, duração (min), intervalo (min), preço, ativo
-- **TipoRecurso**: nome (Sala, Laser...)
+- **Bloqueio**: estabelecimento, profissional (vazio = bloqueio geral do estabelecimento), início, fim, motivo
+- **Procedimento**: estabelecimento, nome, descrição, duração (min), intervalo (min), preço, ativo
+- **TipoRecurso**: estabelecimento, nome (Sala, Laser, Cadeira...)
 - **Recurso**: tipo, nome, ativo
 - **ProcedimentoRecurso**: procedimento, tipo de recurso, quantidade
-- **Cliente**: nome, telefone (único), data de nascimento, data do consentimento LGPD
-- **Agendamento**: cliente, profissional, procedimento, início, fim (duração + intervalo), preço/duração/intervalo copiados, status, origem (cliente/profissional/gerente), cancelado por, cancelado em
+- **Cliente**: estabelecimento, nome, telefone (único no estabelecimento), data de nascimento, data do consentimento LGPD
+- **Agendamento**: estabelecimento, cliente, profissional, procedimento, início, fim (duração + intervalo), preço/duração/intervalo copiados, status, origem (cliente/profissional/gerente), cancelado por, cancelado em
 - **AgendamentoRecurso**: agendamento, recurso alocado
-- **Configuracao**: nome da clínica/app, grade (min), antecedência mínima, antecedência máxima
 
 ## 8. Telas principais
 
@@ -215,7 +229,7 @@ agendado ──► atendido
 - Pendências ("precisa reagendar")
 - Cadastros
 - Relatórios
-- Configurações (horário da clínica, bloqueios gerais, regras de agendamento)
+- Estabelecimento (dados, tipo, horário de funcionamento, regras de agendamento) e feriados/fechamentos
 
 ## 9. Pontos em aberto
 

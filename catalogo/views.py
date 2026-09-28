@@ -12,16 +12,29 @@ from core.utils import responder_linha
 from .forms import ProcedimentoForm, RecursoForm, RecursosFormSet, TipoRecursoForm
 from .models import Procedimento, Recurso, TipoRecurso
 
+
+class DoEstabelecimentoMixin(GerenteRequiredMixin):
+    """Cadastros do gerente: só enxergam e criam registros do estabelecimento em uso."""
+
+    filtro_estabelecimento = "estabelecimento"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(**{self.filtro_estabelecimento: self.request.estabelecimento})
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "estabelecimento": self.request.estabelecimento}
+
+
 # Procedimentos
 
 
-class ProcedimentoLista(GerenteRequiredMixin, ListView):
+class ProcedimentoLista(DoEstabelecimentoMixin, ListView):
     template_name = "catalogo/procedimento_lista.html"
     context_object_name = "procedimentos"
     queryset = Procedimento.objects.prefetch_related("recursos__tipo")
 
 
-class ProcedimentoFormMixin(GerenteRequiredMixin):
+class ProcedimentoFormMixin(DoEstabelecimentoMixin):
     """Salva o procedimento e seus recursos necessários na mesma transação."""
 
     model = Procedimento
@@ -29,15 +42,20 @@ class ProcedimentoFormMixin(GerenteRequiredMixin):
     template_name = "catalogo/procedimento_form.html"
     success_url = reverse_lazy("catalogo:procedimentos")
 
+    def formset(self, dados=None, instancia=None):
+        return RecursosFormSet(
+            dados, instance=instancia, form_kwargs={"estabelecimento": self.request.estabelecimento}
+        )
+
     def get_context_data(self, **kwargs):
-        kwargs.setdefault("formset", RecursosFormSet(instance=self.object))
+        kwargs.setdefault("formset", self.formset(instancia=self.object))
         kwargs["voltar_url"] = self.success_url
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if "pk" in kwargs else None
         form = self.get_form()
-        formset = RecursosFormSet(request.POST, instance=form.instance)
+        formset = self.formset(request.POST, form.instance)
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
                 self.object = form.save()
@@ -58,7 +76,7 @@ class ProcedimentoEditar(ProcedimentoFormMixin, UpdateView):
 @require_POST
 @gerente_required
 def procedimento_alternar(request, pk):
-    procedimento = get_object_or_404(Procedimento, pk=pk)
+    procedimento = get_object_or_404(Procedimento, pk=pk, estabelecimento=request.estabelecimento)
     procedimento.ativo = not procedimento.ativo
     procedimento.save(update_fields=["ativo"])
     return responder_linha(
@@ -69,13 +87,13 @@ def procedimento_alternar(request, pk):
 # Salas e equipamentos
 
 
-class RecursoLista(GerenteRequiredMixin, ListView):
+class RecursoLista(DoEstabelecimentoMixin, ListView):
     template_name = "catalogo/recurso_lista.html"
     context_object_name = "tipos"
     queryset = TipoRecurso.objects.prefetch_related("recursos")
 
 
-class CadastroSimplesMixin(GerenteRequiredMixin, SuccessMessageMixin):
+class CadastroSimplesMixin(DoEstabelecimentoMixin, SuccessMessageMixin):
     template_name = "core/form.html"
     success_url = reverse_lazy("catalogo:recursos")
     extra_context = {"voltar_url": reverse_lazy("catalogo:recursos")}
@@ -98,6 +116,7 @@ class TipoRecursoEditar(CadastroSimplesMixin, UpdateView):
 class RecursoNovo(CadastroSimplesMixin, CreateView):
     model = Recurso
     form_class = RecursoForm
+    filtro_estabelecimento = "tipo__estabelecimento"
     success_message = "“%(nome)s” criado."
     extra_context = {**CadastroSimplesMixin.extra_context, "titulo": "Nova sala ou equipamento"}
 
@@ -108,6 +127,7 @@ class RecursoNovo(CadastroSimplesMixin, CreateView):
 class RecursoEditar(CadastroSimplesMixin, UpdateView):
     model = Recurso
     form_class = RecursoForm
+    filtro_estabelecimento = "tipo__estabelecimento"
     success_message = "“%(nome)s” salvo."
     extra_context = {**CadastroSimplesMixin.extra_context, "titulo": "Editar sala ou equipamento"}
 
@@ -115,7 +135,7 @@ class RecursoEditar(CadastroSimplesMixin, UpdateView):
 @require_POST
 @gerente_required
 def recurso_alternar(request, pk):
-    recurso = get_object_or_404(Recurso, pk=pk)
+    recurso = get_object_or_404(Recurso, pk=pk, tipo__estabelecimento=request.estabelecimento)
     recurso.ativo = not recurso.ativo
     recurso.save(update_fields=["ativo"])
     return responder_linha(request, "catalogo/_recurso_linha.html", {"recurso": recurso}, "catalogo:recursos")

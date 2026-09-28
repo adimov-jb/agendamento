@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Escolher estabelecimento · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  {% if estabelecimentos %}
+    <h1 class="text-2xl font-bold">Onde você quer entrar?</h1>
+    <p class="mt-1 text-slate-600">
+      {% if eh_super_admin %}Como Super Admin, você entra em qualquer estabelecimento como gerente.{% else %}Escolha o estabelecimento e o perfil.{% endif %}
+      Dá para trocar a qualquer momento pelo topo da página.
+    </p>
+
+    <div class="mt-6 grid gap-3">
+      {% for estabelecimento, perfis in estabelecimentos %}
+        <form method="post" class="cartao p-5 {% if atual.0 == estabelecimento %}ring-2 ring-rose-600{% endif %}">
+          {% csrf_token %}
+          <input type="hidden" name="estabelecimento" value="{{ estabelecimento.pk }}">
+          <div class="flex items-center gap-3">
+            {% if estabelecimento.url_foto %}
+              <img src="{{ estabelecimento.url_foto }}" alt="" width="48" height="48" class="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-slate-200">
+            {% endif %}
+            <div class="min-w-0">
+              <p class="truncate text-lg font-semibold">{{ estabelecimento.nome }}</p>
+              <p class="text-sm text-slate-500">{{ estabelecimento.get_tipo_display }}</p>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% for perfil in perfis %}
+              <button type="submit" name="perfil" value="{{ perfil }}"
+                      class="{% if atual.0 == estabelecimento and atual.1 == perfil %}btn-primario{% else %}btn-secundario{% endif %}">
+                {% if perfil == "gerente" %}Entrar como gerente{% else %}Entrar como profissional{% endif %}
+              </button>
+            {% endfor %}
+          </div>
+        </form>
+      {% endfor %}
+    </div>
+  {% else %}
+    <h1 class="text-2xl font-bold">Nenhum estabelecimento</h1>
+    <p class="mt-1 text-slate-600">
+      {% if eh_super_admin %}Nenhum estabelecimento cadastrado ainda.
+      {% else %}Você ainda não faz parte de nenhum estabelecimento. Se recebeu um convite, abra o link do e-mail.
+      Para cadastrar um estabelecimento, fale com o administrador do sistema.{% endif %}
+    </p>
+  {% endif %}
+
+  {% if eh_super_admin %}
+    <a href="{% url 'clinica:novo' %}" class="btn-secundario mt-6 w-full">Cadastrar novo estabelecimento</a>
+  {% endif %}
+</div>
+{% endblock %}

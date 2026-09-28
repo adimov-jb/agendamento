@@ -1,17 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}Clínica · {{ APP_NAME }}{% endblock %}
+{% block title %}Estabelecimento · {{ APP_NAME }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold">Configurações da clínica</h1>
+<h1 class="text-2xl font-bold">Configurações do estabelecimento</h1>
 
-<form method="post" class="mt-6 space-y-6">
+{% url 'publico:inicio' estabelecimento_atual.slug as url_publica %}
+<p class="mt-2 text-sm text-slate-600">
+  Link de agendamento para os clientes:
+  <a href="{{ url_publica }}" class="break-all font-medium text-rose-600 hover:underline">{{ request.scheme }}://{{ request.get_host }}{{ url_publica }}</a>
+</p>
+
+<form method="post" enctype="multipart/form-data" class="mt-6 space-y-6">
   {% csrf_token %}
 
   <section class="cartao space-y-5 p-5 sm:p-6">
-    <h2 class="text-lg font-semibold">Regras de agendamento</h2>
+    <h2 class="text-lg font-semibold">Dados e regras de agendamento</h2>
+    {% for erro in form.non_field_errors %}<p class="text-sm text-red-600">{{ erro }}</p>{% endfor %}
     <div class="grid gap-5 sm:grid-cols-2">
-      {% for campo in form %}{% include "partials/campo.html" %}{% endfor %}
+      {% for campo in form %}{% if campo.name != "foto" and campo.name != "remover_foto" %}{% include "partials/campo.html" %}{% endif %}{% endfor %}
+    </div>
+  </section>
+
+  <section class="cartao space-y-5 p-5 sm:p-6">
+    <h2 class="text-lg font-semibold">Foto</h2>
+    <div class="flex flex-wrap items-start gap-5">
+      {% if estabelecimento_atual.url_foto %}
+        <img src="{{ estabelecimento_atual.url_foto }}" alt="Foto de {{ estabelecimento_atual.nome }}" width="112" height="112" class="h-28 w-28 rounded-xl object-cover ring-1 ring-slate-200">
+      {% else %}
+        <div class="flex h-28 w-28 items-center justify-center rounded-xl bg-slate-100 text-center text-xs text-slate-400">Sem foto</div>
+      {% endif %}
+      <div class="min-w-0 flex-1 space-y-4">
+        {% include "partials/campo.html" with campo=form.foto %}
+        {% if form.remover_foto %}{% include "partials/campo.html" with campo=form.remover_foto %}{% endif %}
+      </div>
     </div>
   </section>
 

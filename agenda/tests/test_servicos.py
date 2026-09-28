@@ -8,7 +8,7 @@ from agenda import servicos
 from agenda.models import Agendamento, AgendamentoRecurso, Bloqueio, Cliente
 from agenda.telefone import normalizar_telefone
 from catalogo.models import Procedimento
-from clinica.models import HorarioClinica
+from clinica.models import HorarioFuncionamento
 from core.templatetags.formatos import telefone
 
 from .conftest import dar_expediente, hora
@@ -27,13 +27,13 @@ def livres(profissional, procedimento, data, **kwargs):
 
 
 def test_expediente_respeita_horario_da_clinica(ana, segunda):
-    HorarioClinica.objects.filter(dia_semana=0).update(inicio=time(10), fim=time(17))
+    HorarioFuncionamento.objects.filter(dia_semana=0).update(inicio=time(10), fim=time(17))
     periodos = [(f"{a:%H:%M}", f"{b:%H:%M}") for a, b in servicos.expediente(ana, segunda)]
     assert periodos == [("10:00", "12:00"), ("13:00", "17:00")]
 
 
 def test_clinica_fechada_nao_tem_horarios(ana, segunda):
-    HorarioClinica.objects.filter(dia_semana=0).delete()
+    HorarioFuncionamento.objects.filter(dia_semana=0).delete()
     assert livres(ana, ana.procedimentos.get(), segunda) == []
 
 
@@ -59,11 +59,13 @@ def test_agendamento_ocupa_duracao_mais_intervalo(ana, limpeza, segunda, marcar)
 
 
 def test_bloqueio_do_profissional_e_geral(ana, limpeza, segunda):
-    Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "12:00"))
+    Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "12:00"))
     assert "09:00" not in livres(ana, limpeza, segunda)
     assert "13:00" in livres(ana, limpeza, segunda)
 
-    Bloqueio.objects.create(profissional=None, inicio=hora(segunda, "00:00"), fim=hora(segunda + timedelta(days=1), "00:00"))
+    Bloqueio.objects.create(
+        estabelecimento=ana.estabelecimento, inicio=hora(segunda, "00:00"), fim=hora(segunda + timedelta(days=1), "00:00")
+    )
     assert livres(ana, limpeza, segunda) == []
 
 
@@ -196,7 +198,7 @@ def test_bloqueio_sinaliza_agendamentos_do_periodo(ana, bia, segunda, marcar):
     tarde = marcar(ana, hora(segunda, "14:00"))
     de_bia = marcar(bia, hora(segunda, "10:15"))
 
-    bloqueio = Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "08:00"), fim=hora(segunda, "12:00"))
+    bloqueio = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "08:00"), fim=hora(segunda, "12:00"))
     assert servicos.aplicar_bloqueio(bloqueio) == 1
 
     manha.refresh_from_db(), tarde.refresh_from_db(), de_bia.refresh_from_db()
@@ -209,13 +211,15 @@ def test_bloqueio_sinaliza_agendamentos_do_periodo(ana, bia, segunda, marcar):
 def test_bloqueio_geral_afeta_todos(ana, bia, segunda, marcar):
     marcar(ana, hora(segunda, "09:00"))
     marcar(bia, hora(segunda, "10:15"))
-    bloqueio = Bloqueio.objects.create(inicio=hora(segunda, "00:00"), fim=hora(segunda + timedelta(days=1), "00:00"))
+    bloqueio = Bloqueio.objects.create(
+        estabelecimento=ana.estabelecimento, inicio=hora(segunda, "00:00"), fim=hora(segunda + timedelta(days=1), "00:00")
+    )
     assert servicos.aplicar_bloqueio(bloqueio) == 2
 
 
 def test_agendamento_sinalizado_pode_ser_remarcado(ana, segunda, marcar):
     agendamento = marcar(ana, hora(segunda, "09:00"))
-    bloqueio = Bloqueio.objects.create(profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "12:00"))
+    bloqueio = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(segunda, "09:00"), fim=hora(segunda, "12:00"))
     servicos.aplicar_bloqueio(bloqueio)
     agendamento.refresh_from_db()
 
@@ -239,7 +243,9 @@ def test_mudar_expediente_sinaliza_quem_ficou_fora(ana, segunda, marcar):
 
 
 def test_cliente_identificado_pelo_telefone(cliente):
-    mesmo = servicos.obter_cliente("Carla Souza", "+5511999998888", data_nascimento=segunda_de_1990())
+    mesmo = servicos.obter_cliente(
+        cliente.estabelecimento, "Carla Souza", "+5511999998888", data_nascimento=segunda_de_1990()
+    )
     assert mesmo.pk == cliente.pk
     assert mesmo.nome == "Carla"  # nome existente é mantido
     assert mesmo.data_nascimento == segunda_de_1990()  # nascimento é completado

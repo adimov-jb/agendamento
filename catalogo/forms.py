@@ -1,12 +1,12 @@
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from core.forms import EstiloMixin
+from core.forms import DoEstabelecimentoMixin, EstiloMixin
 
 from .models import Procedimento, ProcedimentoRecurso, Recurso, TipoRecurso
 
 
-class ProcedimentoForm(EstiloMixin, forms.ModelForm):
+class ProcedimentoForm(DoEstabelecimentoMixin, EstiloMixin, forms.ModelForm):
     class Meta:
         model = Procedimento
         fields = ["nome", "descricao", "duracao_minutos", "intervalo_minutos", "preco"]
@@ -17,6 +17,10 @@ class ProcedimentoRecursoForm(EstiloMixin, forms.ModelForm):
     class Meta:
         model = ProcedimentoRecurso
         fields = ["tipo", "quantidade"]
+
+    def __init__(self, *args, estabelecimento, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tipo"].queryset = TipoRecurso.objects.filter(estabelecimento=estabelecimento)
 
     def has_changed(self):
         # Linha nova sem tipo escolhido fica vazia, mesmo que a quantidade tenha sido mexida.
@@ -57,15 +61,19 @@ RecursosFormSet = inlineformset_factory(
 )
 
 
-class TipoRecursoForm(EstiloMixin, forms.ModelForm):
+class TipoRecursoForm(DoEstabelecimentoMixin, EstiloMixin, forms.ModelForm):
     class Meta:
         model = TipoRecurso
         fields = ["nome"]
-        help_texts = {"nome": "Ex.: Sala, Máquina de laser, Maca."}
+        help_texts = {"nome": "Ex.: Sala, Máquina de laser, Maca, Cadeira."}
 
 
 class RecursoForm(EstiloMixin, forms.ModelForm):
     class Meta:
         model = Recurso
         fields = ["tipo", "nome"]
-        help_texts = {"nome": "Ex.: Sala 1, Laser Soprano."}
+        help_texts = {"nome": "Ex.: Sala 1, Laser Soprano, Cadeira 2."}
+
+    def __init__(self, *args, estabelecimento, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tipo"].queryset = TipoRecurso.objects.filter(estabelecimento=estabelecimento)

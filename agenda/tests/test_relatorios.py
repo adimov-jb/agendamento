@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from agenda import relatorios, servicos
 from agenda.models import Agendamento, Bloqueio
+from clinica.models import Estabelecimento
 from core.templatetags.formatos import percentual
 
 from .conftest import hora
@@ -13,6 +14,10 @@ from .conftest import hora
 pytestmark = pytest.mark.django_db
 
 Origem = Agendamento.Origem
+
+
+def gerar(*args, **kwargs):
+    return relatorios.gerar(Estabelecimento.objects.get(), *args, **kwargs)
 
 
 @pytest.fixture
@@ -34,7 +39,7 @@ def cenario(ana, bia, segunda, marcar):
 
 def test_totais(cenario):
     # "agora" antes da segunda: o agendado ainda está por vir
-    r = relatorios.gerar(cenario, cenario, agora=hora(cenario, "08:00"))
+    r = gerar(cenario, cenario, agora=hora(cenario, "08:00"))
     t = r["totais"]
     assert t["total"] == 5
     assert (t["atendidos"], t["faltas"], t["cancelados"], t["a_realizar"], t["sem_registro"]) == (2, 1, 1, 1, 0)
@@ -44,12 +49,12 @@ def test_totais(cenario):
 
 
 def test_agendado_que_ja_passou_fica_sem_registro(cenario):
-    t = relatorios.gerar(cenario, cenario, agora=hora(cenario, "20:00"))["totais"]
+    t = gerar(cenario, cenario, agora=hora(cenario, "20:00"))["totais"]
     assert (t["a_realizar"], t["sem_registro"]) == (0, 1)
 
 
 def test_por_profissional(cenario, ana, bia):
-    linhas = {l["profissional__nome"]: l for l in relatorios.gerar(cenario, cenario)["por_profissional"]}
+    linhas = {l["profissional__nome"]: l for l in gerar(cenario, cenario)["por_profissional"]}
     assert linhas["Ana"]["total"] == 4
     assert linhas["Ana"]["taxa_faltas"] == 0.5
     assert linhas["Bia"]["atendidos"] == 1
@@ -59,7 +64,7 @@ def test_por_profissional(cenario, ana, bia):
 def test_profissional_quebrado_por_data(cenario, ana, marcar):
     semana_seguinte = cenario + timedelta(days=7)
     marcar(ana, hora(semana_seguinte, "09:00"))
-    linhas = {l["profissional__nome"]: l for l in relatorios.gerar(cenario, semana_seguinte)["por_profissional"]}
+    linhas = {l["profissional__nome"]: l for l in gerar(cenario, semana_seguinte)["por_profissional"]}
 
     dias_da_ana = [(d["dia"], d["total"], d["previsto"]) for d in linhas["Ana"]["dias"]]
     assert dias_da_ana == [(cenario, 4, Decimal("300.00")), (semana_seguinte, 1, Decimal("150.00"))]
@@ -68,26 +73,26 @@ def test_profissional_quebrado_por_data(cenario, ana, marcar):
 
 
 def test_filtro_por_profissional(cenario, bia):
-    r = relatorios.gerar(cenario, cenario, profissional=bia)
+    r = gerar(cenario, cenario, profissional=bia)
     assert r["totais"]["total"] == 1
     assert [l["profissional__nome"] for l in r["por_profissional"]] == ["Bia"]
 
 
 def test_periodo_fora_nao_conta(cenario):
     dia_seguinte = cenario + timedelta(days=1)
-    assert relatorios.gerar(dia_seguinte, dia_seguinte)["totais"]["total"] == 0
-    assert relatorios.gerar(dia_seguinte, dia_seguinte)["totais"]["taxa_faltas"] is None
+    assert gerar(dia_seguinte, dia_seguinte)["totais"]["total"] == 0
+    assert gerar(dia_seguinte, dia_seguinte)["totais"]["taxa_faltas"] is None
 
 
 def test_clientes_faltosos(cenario):
-    r = relatorios.gerar(cenario, cenario)
+    r = gerar(cenario, cenario)
     assert [(c["cliente__nome"], c["faltas"], c["atendidos"]) for c in r["clientes_faltosos"]] == [("Carla", 1, 2)]
 
 
 def test_precisa_reagendar_fica_fora_do_previsto(cenario, ana):
-    bloqueio = Bloqueio.objects.create(profissional=ana, inicio=hora(cenario, "15:00"), fim=hora(cenario, "18:00"))
+    bloqueio = Bloqueio.objects.create(estabelecimento=ana.estabelecimento, profissional=ana, inicio=hora(cenario, "15:00"), fim=hora(cenario, "18:00"))
     servicos.aplicar_bloqueio(bloqueio)
-    t = relatorios.gerar(cenario, cenario)["totais"]
+    t = gerar(cenario, cenario)["totais"]
     assert t["reagendar"] == 1
     assert t["previsto"] == Decimal("300.00")
 
@@ -95,7 +100,7 @@ def test_precisa_reagendar_fica_fora_do_previsto(cenario, ana):
 def test_preco_do_momento_do_agendamento(cenario, limpeza):
     limpeza.preco = 999
     limpeza.save()
-    assert relatorios.gerar(cenario, cenario)["totais"]["realizado"] == Decimal("300.00")
+    assert gerar(cenario, cenario)["totais"]["realizado"] == Decimal("300.00")
 
 
 @pytest.mark.parametrize("fracao,texto", [(None, "—"), (0, "0%"), (0.5, "50%"), (1 / 3, "33,3%"), (1, "100%")])

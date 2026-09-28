@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="mx-auto max-w-2xl">
-  <a href="{% url 'core:home' %}" class="text-sm text-slate-500 hover:text-rose-600">← Procedimentos</a>
+  <a href="{% url 'publico:inicio' estabelecimento_publico.slug %}" class="text-sm text-slate-500 hover:text-rose-600">← Procedimentos</a>
   <h1 class="mt-2 text-2xl font-bold">{{ procedimento.nome }}</h1>
-  <p class="mt-1 text-slate-600">{{ procedimento.duracao_minutos|duracao }} · R$ {{ procedimento.preco|floatformat:"2g" }} · pagamento na clínica</p>
+  <p class="mt-1 text-slate-600">{{ procedimento.duracao_minutos|duracao }} · R$ {{ procedimento.preco|floatformat:"2g" }} · pagamento no estabelecimento</p>
 
   <form method="post" class="mt-6 space-y-6">
     {% csrf_token %}
@@ -15,7 +15,7 @@
 
     <div class="space-y-6">
       <section class="cartao p-5 sm:p-6"
-               hx-get="{% url 'publico:calendario' procedimento.pk %}" hx-trigger="change" hx-target="#calendario" hx-include="this">
+               hx-get="{% url 'publico:calendario' estabelecimento_publico.slug procedimento.pk %}" hx-trigger="change" hx-target="#calendario" hx-include="this">
         <h2 class="text-lg font-semibold">1. Profissional</h2>
         <div class="mt-4 grid gap-2 sm:grid-cols-2">
           {% for p in profissionais %}
@@ -33,7 +33,7 @@
 
       <section class="cartao space-y-4 p-5 sm:p-6">
         <h2 class="text-lg font-semibold">2. Dia e horário</h2>
-        <div id="calendario" hx-get="{% url 'publico:horarios' procedimento.pk %}" hx-trigger="change[target.name == 'data']"
+        <div id="calendario" hx-get="{% url 'publico:horarios' estabelecimento_publico.slug procedimento.pk %}" hx-trigger="change[target.name == 'data']"
              hx-target="#horarios" hx-include="[name='profissional'], [name='data']">
           {% include "publico/_calendario.html" %}
         </div>

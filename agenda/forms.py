@@ -67,16 +67,16 @@ class HorarioTrabalhoDiaForm(EstiloMixin, forms.Form):
     inicio2 = campo_hora(required=False)
     fim2 = campo_hora(required=False)
 
-    def __init__(self, *args, dia, nome_dia, clinica, **kwargs):
+    def __init__(self, *args, dia, nome_dia, funcionamento, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dia, self.nome_dia, self.clinica = dia, nome_dia, clinica
+        self.dia, self.nome_dia, self.funcionamento = dia, nome_dia, funcionamento
 
     def clean(self):
         dados = super().clean()
         if not dados.get("trabalha"):
             return dados
-        if self.clinica is None:
-            raise forms.ValidationError("A clínica não abre neste dia.")
+        if self.funcionamento is None:
+            raise forms.ValidationError("O estabelecimento não abre neste dia.")
 
         inicio1, fim1 = dados.get("inicio1"), dados.get("fim1")
         inicio2, fim2 = dados.get("inicio2"), dados.get("fim2")
@@ -93,9 +93,10 @@ class HorarioTrabalhoDiaForm(EstiloMixin, forms.Form):
         for inicio, fim in periodos:
             if fim <= inicio:
                 raise forms.ValidationError("O fim deve ser depois do início.")
-            if inicio < self.clinica.inicio or fim > self.clinica.fim:
+            aberto = self.funcionamento
+            if inicio < aberto.inicio or fim > aberto.fim:
                 raise forms.ValidationError(
-                    f"Fora do horário da clínica ({self.clinica.inicio:%H:%M}–{self.clinica.fim:%H:%M})."
+                    f"Fora do horário do estabelecimento ({aberto.inicio:%H:%M}–{aberto.fim:%H:%M})."
                 )
         dados["periodos"] = periodos
         return dados
