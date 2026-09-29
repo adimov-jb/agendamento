@@ -1,9 +1,13 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Navegadores pedem /favicon.ico direto, mesmo em páginas sem o <link rel="icon">
+    path("favicon.ico", RedirectView.as_view(url=f"{settings.STATIC_URL}favicon.ico", permanent=True)),
     path("entrar/", auth_views.LoginView.as_view(redirect_authenticated_user=True), name="login"),
     path("sair/", auth_views.LogoutView.as_view(), name="logout"),
     # Cada colaborador cuida da própria senha (o login vale em todos os estabelecimentos dele)

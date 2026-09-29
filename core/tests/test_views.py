@@ -207,3 +207,9 @@ def test_profissional_inativo_perde_o_acesso_ao_estabelecimento(client, profissi
     client.force_login(profissional.usuario)
     assert client.get(reverse("core:painel")).url == reverse("core:acesso")
     assert client.get(reverse("agenda:dia")).status_code == 403
+
+
+def test_icone_do_navegador(client):
+    html = client.get(reverse("login")).content.decode()
+    assert 'rel="icon" href="/static/favicon.ico"' in html
+    assert client.get("/favicon.ico").url == "/static/favicon.ico"
