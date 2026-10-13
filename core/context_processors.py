@@ -18,6 +18,8 @@ def app(request):
         "estabelecimento_publico": publico,
         # O que aparece no topo da página (nome e foto)
         "estabelecimento_exibido": exibido,
+        # Visual da página conforme o tipo do estabelecimento (ver static/src/input.css)
+        "tema": exibido.tipo if exibido else "",
         "eh_super_admin": eh_super_admin(request.user),
         "eh_gerente": gerente,
         "eh_profissional": perfil == PERFIL_PROFISSIONAL,

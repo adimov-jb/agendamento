@@ -14,7 +14,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
       <h2 class="font-semibold">
         {{ tipo.nome }}
-        <a href="{% url 'catalogo:tipo_editar' tipo.pk %}" class="ml-2 text-sm font-normal text-slate-500 hover:text-rose-600">renomear</a>
+        <a href="{% url 'catalogo:tipo_editar' tipo.pk %}" class="ml-2 text-sm font-normal text-slate-500 hover:text-marca-600">renomear</a>
       </h2>
       <a href="{% url 'catalogo:recurso_novo' %}?tipo={{ tipo.pk }}" class="btn-pequeno">Adicionar unidade</a>
     </div>

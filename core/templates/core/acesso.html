@@ -13,7 +13,7 @@
 
     <div class="mt-6 grid gap-3">
       {% for estabelecimento, perfis in estabelecimentos %}
-        <form method="post" class="cartao p-5 {% if atual.0 == estabelecimento %}ring-2 ring-rose-600{% endif %}">
+        <form method="post" class="cartao p-5 {% if atual.0 == estabelecimento %}ring-2 ring-marca-600{% endif %}">
           {% csrf_token %}
           <input type="hidden" name="estabelecimento" value="{{ estabelecimento.pk }}">
           <div class="flex items-center gap-3">

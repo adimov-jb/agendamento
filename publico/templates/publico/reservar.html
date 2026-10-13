@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="mx-auto max-w-2xl">
-  <a href="{% url 'publico:inicio' estabelecimento_publico.slug %}" class="text-sm text-slate-500 hover:text-rose-600">← Procedimentos</a>
+  <a href="{% url 'publico:inicio' estabelecimento_publico.slug %}" class="text-sm text-slate-500 hover:text-marca-600">← Procedimentos</a>
   <h1 class="mt-2 text-2xl font-bold">{{ procedimento.nome }}</h1>
   <p class="mt-1 text-slate-600">{{ procedimento.duracao_minutos|duracao }} · R$ {{ procedimento.preco|floatformat:"2g" }} · pagamento no estabelecimento</p>
 
@@ -23,8 +23,8 @@
               <input type="radio" name="profissional" value="{{ p.pk }}" class="peer sr-only" required
                      {% if p == profissional_escolhido %}checked{% endif %}>
               <span class="block cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-3 font-medium
-                           hover:border-rose-400 peer-checked:border-rose-600 peer-checked:bg-rose-50 peer-checked:text-rose-800
-                           peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500">{{ p.nome }}</span>
+                           hover:border-marca-400 peer-checked:border-marca-600 peer-checked:bg-marca-50 peer-checked:text-marca-800
+                           peer-focus-visible:ring-2 peer-focus-visible:ring-marca-500">{{ p.nome }}</span>
             </label>
           {% endfor %}
         </div>

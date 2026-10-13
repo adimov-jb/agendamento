@@ -8,7 +8,7 @@
 {% url 'publico:inicio' estabelecimento_atual.slug as url_publica %}
 <p class="mt-2 text-sm text-slate-600">
   Link de agendamento para os clientes:
-  <a href="{{ url_publica }}" class="break-all font-medium text-rose-600 hover:underline">{{ request.scheme }}://{{ request.get_host }}{{ url_publica }}</a>
+  <a href="{{ url_publica }}" class="break-all font-medium text-marca-600 hover:underline">{{ request.scheme }}://{{ request.get_host }}{{ url_publica }}</a>
 </p>
 
 <form method="post" enctype="multipart/form-data" class="mt-6 space-y-6">

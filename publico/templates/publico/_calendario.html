@@ -21,9 +21,9 @@
             <label>
               <input type="radio" name="data" value="{{ c.dia.isoformat }}" class="peer sr-only" required
                      aria-label="{{ c.dia|date:'l, j \d\e F' }}" {% if c.dia == escolhida %}checked{% endif %}>
-              <span class="block cursor-pointer rounded-lg border border-rose-200 bg-rose-50 py-2 text-center text-sm font-semibold text-rose-800
-                           hover:border-rose-400 peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:text-white
-                           peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500">{{ c.dia.day }}</span>
+              <span class="block cursor-pointer rounded-lg border border-marca-200 bg-marca-50 py-2 text-center text-sm font-semibold text-marca-800
+                           hover:border-marca-400 peer-checked:border-marca-600 peer-checked:bg-marca-600 peer-checked:text-white
+                           peer-focus-visible:ring-2 peer-focus-visible:ring-marca-500">{{ c.dia.day }}</span>
             </label>
           {% else %}
             <span class="block py-2 text-center text-sm text-slate-300 {% if not c.no_mes %}invisible{% endif %}" aria-hidden="true">{{ c.dia.day }}</span>

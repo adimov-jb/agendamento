@@ -1,9 +1,9 @@
 from django import forms
 
 CLASSE_CAMPO = (
-    "block w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500"
+    "block w-full rounded-lg border-slate-300 shadow-sm focus:border-marca-500 focus:ring-marca-500"
 )
-CLASSE_CHECKBOX = "rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+CLASSE_CHECKBOX = "rounded border-slate-300 text-marca-600 focus:ring-marca-500"
 
 
 class EstiloMixin:

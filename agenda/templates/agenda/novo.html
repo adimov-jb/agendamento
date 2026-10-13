@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="mx-auto max-w-2xl">
-  <a href="{{ url_retorno }}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
+  <a href="{{ url_retorno }}" class="text-sm text-slate-500 hover:text-marca-600">← Voltar</a>
   <h1 class="mt-2 text-2xl font-bold">Novo agendamento</h1>
 
   {% if profissionais is not None %}
@@ -13,7 +13,7 @@
       <input type="hidden" name="data" value="{{ data|date:'Y-m-d' }}">
       <label class="block text-sm font-medium text-slate-700" for="escolha-profissional">Profissional</label>
       <select id="escolha-profissional" name="profissional" onchange="this.form.submit()"
-              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500">
+              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-marca-500 focus:ring-marca-500">
         <option value="">Escolha…</option>
         {% for p in profissionais %}<option value="{{ p.pk }}" {% if p == profissional %}selected{% endif %}>{{ p.nome }}</option>{% endfor %}
       </select>

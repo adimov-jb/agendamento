@@ -19,7 +19,7 @@
   <div class="mt-4 flex flex-wrap gap-2">
     {% for rotulo, inicio, fim in atalhos %}
       <a href="?inicio={{ inicio|date:'Y-m-d' }}&fim={{ fim|date:'Y-m-d' }}{% if profissional %}&profissional={{ profissional.pk }}{% endif %}"
-         class="btn-pequeno {% if periodo.0 == inicio and periodo.1 == fim %}border-rose-400 bg-rose-50 text-rose-700{% endif %}">{{ rotulo }}</a>
+         class="btn-pequeno {% if periodo.0 == inicio and periodo.1 == fim %}border-marca-400 bg-marca-50 text-marca-700{% endif %}">{{ rotulo }}</a>
     {% endfor %}
   </div>
 </form>
@@ -95,7 +95,7 @@
             </tr>
             {% for d in l.dias %}
               <tr class="text-slate-600">
-                <td class="py-2 pl-8 pr-4"><a href="{{ url_dia }}?data={{ d.dia|date:'Y-m-d' }}" class="hover:text-rose-600">{{ d.dia|date:"D, d/m/Y" }}</a></td>
+                <td class="py-2 pl-8 pr-4"><a href="{{ url_dia }}?data={{ d.dia|date:'Y-m-d' }}" class="hover:text-marca-600">{{ d.dia|date:"D, d/m/Y" }}</a></td>
                 <td class="px-3 py-2 text-right">{{ d.total }}</td>
                 <td class="px-3 py-2 text-right">{{ d.atendidos }}</td>
                 <td class="px-3 py-2 text-right">{{ d.faltas }}</td>
@@ -149,7 +149,7 @@
           {% for c in relatorio.clientes_faltosos %}
             <tr>
               <td class="px-4 py-2 font-medium">{{ c.cliente__nome }}</td>
-              <td class="px-3 py-2"><a href="tel:{{ c.cliente__telefone }}" class="text-rose-600 hover:underline">{{ c.cliente__telefone|telefone }}</a></td>
+              <td class="px-3 py-2"><a href="tel:{{ c.cliente__telefone }}" class="text-marca-600 hover:underline">{{ c.cliente__telefone|telefone }}</a></td>
               <td class="px-3 py-2 text-right">{{ c.faltas }}</td>
               <td class="px-3 py-2 text-right">{{ c.atendidos }}</td>
               <td class="px-4 py-2 text-right">{{ c.taxa_faltas|percentual }}</td>

@@ -1,7 +1,7 @@
 {% load formatos %}
 <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {% if not procedimento.ativo %}bg-slate-50{% endif %}">
   <div class="min-w-0">
-    <a href="{% url 'catalogo:procedimento_editar' procedimento.pk %}" class="font-medium hover:text-rose-600 {% if not procedimento.ativo %}text-slate-500{% endif %}">{{ procedimento.nome }}</a>
+    <a href="{% url 'catalogo:procedimento_editar' procedimento.pk %}" class="font-medium hover:text-marca-600 {% if not procedimento.ativo %}text-slate-500{% endif %}">{{ procedimento.nome }}</a>
     {% if not procedimento.ativo %}<span class="selo-inativo">Inativo</span>{% endif %}
     <p class="text-sm text-slate-500">
       {{ procedimento.duracao_minutos|duracao }}{% if procedimento.intervalo_minutos %} + {{ procedimento.intervalo_minutos|duracao }} de intervalo{% endif %}

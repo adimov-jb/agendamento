@@ -1,5 +1,5 @@
 {% load static %}<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR"{% if tema %} class="tema-{{ tema }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,19 +7,28 @@
   <link rel="icon" href="{% static 'favicon.ico' %}" sizes="48x48">
   <link rel="icon" href="{% static 'img/icone-192.png' %}" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  {% if tema == "barbearia" %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Oswald:wght@500;600&display=swap">
+  {% elif tema == "clinica" %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap">
+  {% endif %}
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <header class="bg-white border-b border-slate-200">
+<body class="flex min-h-screen flex-col bg-fundo text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="border-b border-slate-200 bg-white{% if estabelecimento_publico %} topo-publico{% endif %}">
     <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
       <a href="{% if user.is_authenticated %}{% url 'core:painel' %}{% elif estabelecimento_publico %}{% url 'publico:inicio' estabelecimento_publico.slug %}{% else %}{% url 'core:home' %}{% endif %}"
          class="flex min-w-0 items-center gap-3">
         {% if estabelecimento_exibido.url_foto %}
           <img src="{{ estabelecimento_exibido.url_foto }}" alt="" width="48" height="48" class="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-slate-200">
         {% endif %}
-        <span class="min-w-0">
-          <span class="block truncate text-lg font-semibold text-rose-600">{{ APP_NAME }}</span>
+        <span class="min-w-0{% if estabelecimento_publico and estabelecimento_exibido.url_foto %} hidden sm:block{% endif %}">
+          <span class="topo-nome block truncate text-lg font-semibold text-marca-600">{{ APP_NAME }}</span>
           {% if estabelecimento_atual and not estabelecimento_publico %}
             <span class="block truncate text-xs text-slate-500">{{ estabelecimento_atual.get_tipo_display }} · {% if eh_gerente %}{% if eh_super_admin %}Super Admin{% else %}Gerente{% endif %}{% else %}Profissional{% endif %}</span>
           {% endif %}
@@ -27,7 +36,7 @@
       </a>
       {% if user.is_authenticated %}
         <div class="flex shrink-0 items-center gap-3">
-          <span class="hidden text-sm text-slate-500 md:inline">{{ user.email|default:user.username }}</span>
+          <span class="topo-suave hidden text-sm text-slate-500 md:inline">{{ user.email|default:user.username }}</span>
           {% if outro_perfil %}
             <form method="post" action="{% url 'core:acesso' %}">
               {% csrf_token %}
@@ -46,9 +55,9 @@
       {% else %}
         <nav class="flex shrink-0 items-center gap-4 text-sm">
           {% if estabelecimento_publico %}
-            <a href="{% url 'publico:meus' estabelecimento_publico.slug %}" class="font-medium text-slate-700 hover:text-rose-600">Meus agendamentos</a>
+            <a href="{% url 'publico:meus' estabelecimento_publico.slug %}" class="topo-link font-medium text-slate-700 hover:text-marca-600">Meus agendamentos</a>
           {% endif %}
-          <a href="{% url 'login' %}" class="text-slate-500 hover:text-rose-600">Equipe</a>
+          <a href="{% url 'login' %}" class="topo-link text-slate-500 hover:text-marca-600">Equipe</a>
         </nav>
       {% endif %}
     </div>
@@ -63,15 +72,15 @@
           {% url 'catalogo:recursos' as url_recursos %}
           {% url 'clinica:configuracoes' as url_estabelecimento %}
           {% with p=request.path %}
-            <a href="{{ url_inicio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_inicio or '/gerente/agenda/' in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Agenda</a>
-            <a href="{{ url_pendencias }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_pendencias %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Pendências{% if pendencias %} <span class="ml-1 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-white">{{ pendencias }}</span>{% endif %}</a>
+            <a href="{{ url_inicio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_inicio or '/gerente/agenda/' in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Agenda</a>
+            <a href="{{ url_pendencias }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_pendencias %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Pendências{% if pendencias %} <span class="ml-1 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-white">{{ pendencias }}</span>{% endif %}</a>
             {% url 'agenda:gerente_relatorios' as url_relatorios %}
-            <a href="{{ url_relatorios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_relatorios %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Relatórios</a>
-            <a href="{{ url_fechamentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_fechamentos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Feriados</a>
-            <a href="{{ url_profissionais }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_profissionais in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Profissionais</a>
-            <a href="{{ url_procedimentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_procedimentos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Procedimentos</a>
-            <a href="{{ url_recursos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_recursos in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Salas e equipamentos</a>
-            <a href="{{ url_estabelecimento }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_estabelecimento in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Estabelecimento</a>
+            <a href="{{ url_relatorios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_relatorios %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Relatórios</a>
+            <a href="{{ url_fechamentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_fechamentos in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Feriados</a>
+            <a href="{{ url_profissionais }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_profissionais in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Profissionais</a>
+            <a href="{{ url_procedimentos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_procedimentos in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Procedimentos</a>
+            <a href="{{ url_recursos }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_recursos in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Salas e equipamentos</a>
+            <a href="{{ url_estabelecimento }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_estabelecimento in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Estabelecimento</a>
           {% endwith %}
         </div>
       </nav>
@@ -84,19 +93,19 @@
           {% url 'agenda:horarios' as url_horarios %}
           {% url 'agenda:bloqueios' as url_bloqueios %}
           {% with p=request.path %}
-            <a href="{{ url_dia }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_dia or '/agenda/agendamentos/' in p or '/agenda/novo/' in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Minha agenda</a>
-            <a href="{{ url_semana }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_semana %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Semana</a>
-            <a href="{{ url_horarios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_horarios %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Horários de trabalho</a>
-            <a href="{{ url_bloqueios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_bloqueios in p %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Bloqueios</a>
+            <a href="{{ url_dia }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_dia or '/agenda/agendamentos/' in p or '/agenda/novo/' in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Minha agenda</a>
+            <a href="{{ url_semana }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_semana %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Semana</a>
+            <a href="{{ url_horarios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_horarios %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Horários de trabalho</a>
+            <a href="{{ url_bloqueios }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if url_bloqueios in p %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Bloqueios</a>
             {% url 'agenda:relatorio' as url_relatorio %}
-            <a href="{{ url_relatorio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_relatorio %}border-rose-600 text-rose-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Meu relatório</a>
+            <a href="{{ url_relatorio }}" class="whitespace-nowrap border-b-2 px-3 py-2 {% if p == url_relatorio %}border-marca-600 text-marca-700{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">Meu relatório</a>
           {% endwith %}
         </div>
       </nav>
     {% endif %}
   </header>
 
-  <main class="mx-auto max-w-5xl px-4 py-6">
+  <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
     {% if messages %}
       <div class="mb-4 space-y-2">
         {% for message in messages %}
@@ -106,5 +115,6 @@
     {% endif %}
     {% block content %}{% endblock %}
   </main>
+  {% if estabelecimento_publico %}{% include "publico/_rodape.html" %}{% endif %}
 </body>
 </html>

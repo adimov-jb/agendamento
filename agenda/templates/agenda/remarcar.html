@@ -5,7 +5,7 @@
 {% block content %}
 {% with a=agendamento %}
 <div class="mx-auto max-w-2xl">
-  <a href="{% url 'agenda:detalhe' a.pk %}" class="text-sm text-slate-500 hover:text-rose-600">← Voltar</a>
+  <a href="{% url 'agenda:detalhe' a.pk %}" class="text-sm text-slate-500 hover:text-marca-600">← Voltar</a>
   <h1 class="mt-2 text-2xl font-bold">Remarcar</h1>
   <p class="mt-1 text-slate-600">{{ a.cliente.nome }} · {{ a.procedimento.nome }} com {{ a.profissional.nome }} · marcado para {{ a.inicio|date:"d/m" }} às {{ a.inicio|time:"H:i" }}</p>
 

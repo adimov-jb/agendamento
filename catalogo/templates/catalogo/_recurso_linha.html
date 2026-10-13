@@ -1,6 +1,6 @@
 <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {% if not recurso.ativo %}bg-slate-50{% endif %}">
   <div class="min-w-0">
-    <a href="{% url 'catalogo:recurso_editar' recurso.pk %}" class="font-medium hover:text-rose-600 {% if not recurso.ativo %}text-slate-500{% endif %}">{{ recurso.nome }}</a>
+    <a href="{% url 'catalogo:recurso_editar' recurso.pk %}" class="font-medium hover:text-marca-600 {% if not recurso.ativo %}text-slate-500{% endif %}">{{ recurso.nome }}</a>
     {% if not recurso.ativo %}<span class="selo-inativo">Inativo</span>{% endif %}
   </div>
   <form method="post" action="{% url 'catalogo:recurso_alternar' recurso.pk %}"

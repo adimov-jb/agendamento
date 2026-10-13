@@ -25,7 +25,7 @@
         <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div class="min-w-0">
             <p class="font-medium">{{ convite.nome }}
-              {% if convite.gerente %}<span class="ml-2 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Gerente</span>{% endif %}
+              {% if convite.gerente %}<span class="ml-2 rounded-full bg-marca-50 px-2 py-0.5 text-xs font-medium text-marca-700">Gerente</span>{% endif %}
               {% if not convite.valido %}<span class="selo-inativo">Expirado</span>{% endif %}
             </p>
             <p class="truncate text-sm text-slate-500">{{ convite.email }} · enviado em {{ convite.enviado_em|date:"d/m/Y H:i" }}</p>

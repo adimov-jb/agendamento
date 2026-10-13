@@ -2,9 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Temas por tipo de estabelecimento. A classe tema-<tipo> fica no <html> (ver templates/base.html)
+ * e troca a cor da marca (classes marca-*), a cor de fundo e as fontes.
+ * Sem tema (páginas fora de um estabelecimento, salão): rosa e fonte do sistema.
+ * Cores em "R G B" para o Tailwind aplicar transparência (ex.: bg-marca-600/80).
+ */
+@layer base {
+  :root {
+    --marca-50: 255 241 242;
+    --marca-100: 255 228 230;
+    --marca-200: 254 205 211;
+    --marca-300: 253 164 175;
+    --marca-400: 251 113 133;
+    --marca-500: 244 63 94;
+    --marca-600: 225 29 72;
+    --marca-700: 190 18 60;
+    --marca-800: 159 18 57;
+    --marca-900: 136 19 55;
+    --fundo: 248 250 252;
+    --destaque: 15 23 42;
+    --fonte-texto: ui-sans-serif, system-ui, sans-serif;
+    --fonte-titulo: var(--fonte-texto);
+  }
+
+  /* Barbearia: clássica e vintage. Carvão, latão dourado e papel envelhecido; títulos condensados em caixa alta. */
+  .tema-barbearia {
+    --marca-50: 250 246 238;
+    --marca-100: 243 233 212;
+    --marca-200: 231 211 170;
+    --marca-300: 216 185 124;
+    --marca-400: 201 160 88;
+    --marca-500: 176 130 52;
+    --marca-600: 140 98 34;
+    --marca-700: 112 78 28;
+    --marca-800: 88 61 24;
+    --marca-900: 66 46 20;
+    --fundo: 245 241 234;
+    --destaque: 23 20 18;
+    --fonte-texto: "Barlow", ui-sans-serif, system-ui, sans-serif;
+    --fonte-titulo: "Oswald", "Barlow", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Clínica de estética: leve e elegante. Marfim, nude e terracota suave; títulos com serifa. */
+  .tema-clinica {
+    --marca-50: 251 245 242;
+    --marca-100: 245 233 227;
+    --marca-200: 236 214 204;
+    --marca-300: 222 186 171;
+    --marca-400: 201 150 131;
+    --marca-500: 179 119 99;
+    --marca-600: 154 95 78;
+    --marca-700: 127 77 64;
+    --marca-800: 102 63 54;
+    --marca-900: 80 51 45;
+    --fundo: 250 246 241;
+    --destaque: 61 47 42;
+    --fonte-texto: "Jost", ui-sans-serif, system-ui, sans-serif;
+    --fonte-titulo: "Cormorant Garamond", Georgia, serif;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--fonte-titulo);
+  }
+  .tema-barbearia h1, .tema-barbearia h2, .tema-barbearia h3 {
+    @apply font-semibold uppercase tracking-wide;
+  }
+  .tema-clinica h1, .tema-clinica h2, .tema-clinica h3 {
+    @apply font-semibold;
+  }
+}
+
 @layer components {
   .btn-primario {
-    @apply inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center rounded-lg bg-marca-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-marca-700 focus:outline-none focus:ring-2 focus:ring-marca-500 focus:ring-offset-2;
   }
   .btn-secundario {
     @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50;
@@ -17,5 +88,55 @@
   }
   .selo-inativo {
     @apply ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500;
+  }
+
+  /* Barbearia: botões carvão com letras douradas, cantos retos */
+  .tema-barbearia .btn-primario {
+    @apply rounded-sm bg-destaque font-semibold uppercase tracking-wider text-marca-300 hover:bg-marca-600 hover:text-white;
+  }
+  .tema-barbearia .btn-secundario,
+  .tema-barbearia .btn-pequeno {
+    @apply rounded-sm;
+  }
+  .tema-barbearia .cartao {
+    @apply rounded-sm border-t-2 border-marca-500 ring-stone-300;
+  }
+
+  /* Clínica: botões em pílula, cartões arredondados e sombra suave */
+  .tema-clinica .btn-primario {
+    @apply rounded-full tracking-wide;
+  }
+  .tema-clinica .btn-secundario,
+  .tema-clinica .btn-pequeno {
+    @apply rounded-full border-marca-200;
+  }
+  .tema-clinica .cartao {
+    @apply rounded-3xl shadow-[0_8px_30px_-12px_rgb(var(--marca-700)/0.25)] ring-marca-100;
+  }
+
+  /* Topo das páginas do cliente. Na barbearia, faixa escura com detalhe dourado. */
+  .tema-barbearia .topo-publico {
+    @apply border-b-4 border-marca-500 bg-destaque;
+  }
+  .tema-barbearia .topo-publico .topo-nome {
+    @apply font-titulo uppercase tracking-widest text-marca-300;
+  }
+  .tema-barbearia .topo-publico .topo-link,
+  .tema-barbearia .topo-publico .topo-suave {
+    @apply text-stone-300 hover:text-marca-300;
+  }
+  .tema-barbearia .topo-publico .btn-pequeno {
+    @apply border-stone-600 bg-transparent text-stone-200 hover:bg-white/10;
+  }
+  .tema-clinica .topo-publico {
+    @apply border-marca-100 bg-white/80 backdrop-blur;
+  }
+  .tema-clinica .topo-publico .topo-nome {
+    @apply font-titulo text-2xl font-semibold text-marca-700;
+  }
+
+  /* Listra de barbeiro (vermelho, branco e azul) usada como detalhe decorativo */
+  .listra-barbeiro {
+    background: repeating-linear-gradient(-45deg, #b91c1c 0 10px, #fafaf9 10px 20px, #1e3a8a 20px 30px, #fafaf9 30px 40px);
   }
 }

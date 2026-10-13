@@ -9,13 +9,13 @@
 {% if estabelecimentos %}
   <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for e in estabelecimentos %}
-      <a href="{% url 'publico:inicio' e.slug %}" class="cartao group flex items-end justify-between gap-3 p-5 hover:ring-rose-300">
+      <a href="{% url 'publico:inicio' e.slug %}" class="cartao group flex items-end justify-between gap-3 p-5 hover:ring-marca-300">
         <div class="flex min-w-0 items-center gap-3">
           {% if e.url_foto %}
             <img src="{{ e.url_foto }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-200">
           {% endif %}
           <div class="min-w-0">
-            <h2 class="truncate text-lg font-semibold group-hover:text-rose-700">{{ e.nome }}</h2>
+            <h2 class="truncate text-lg font-semibold group-hover:text-marca-700">{{ e.nome }}</h2>
             <p class="text-sm text-slate-500">{{ e.get_tipo_display }}</p>
           </div>
         </div>
