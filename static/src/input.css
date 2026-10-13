@@ -7,6 +7,8 @@
  * e troca a cor da marca (classes marca-*), a cor de fundo e as fontes.
  * Sem tema (páginas fora de um estabelecimento, salão): rosa e fonte do sistema.
  * Cores em "R G B" para o Tailwind aplicar transparência (ex.: bg-marca-600/80).
+ * A classe "escuro" (páginas do cliente da barbearia) inverte os cinzas (classes slate-*) e a marca:
+ * o mesmo template fica com fundo preto e letras claras.
  */
 @layer base {
   :root {
@@ -20,46 +22,118 @@
     --marca-700: 190 18 60;
     --marca-800: 159 18 57;
     --marca-900: 136 19 55;
+    --cinza-50: 248 250 252;
+    --cinza-100: 241 245 249;
+    --cinza-200: 226 232 240;
+    --cinza-300: 203 213 225;
+    --cinza-400: 148 163 184;
+    --cinza-500: 100 116 139;
+    --cinza-600: 71 85 105;
+    --cinza-700: 51 65 85;
+    --cinza-800: 30 41 59;
+    --cinza-900: 15 23 42;
+    --cinza-950: 2 6 23;
     --fundo: 248 250 252;
     --destaque: 15 23 42;
     --fonte-texto: ui-sans-serif, system-ui, sans-serif;
     --fonte-titulo: var(--fonte-texto);
   }
 
-  /* Barbearia: clássica e vintage. Carvão, latão dourado e papel envelhecido; títulos condensados em caixa alta. */
+  /* Barbearia: preto e branco como a fachada (ripado preto, letreiro branco), com a listra do poste de barbeiro.
+     Títulos condensados em caixa alta. */
   .tema-barbearia {
-    --marca-50: 250 246 238;
-    --marca-100: 243 233 212;
-    --marca-200: 231 211 170;
-    --marca-300: 216 185 124;
-    --marca-400: 201 160 88;
-    --marca-500: 176 130 52;
-    --marca-600: 140 98 34;
-    --marca-700: 112 78 28;
-    --marca-800: 88 61 24;
-    --marca-900: 66 46 20;
-    --fundo: 245 241 234;
-    --destaque: 23 20 18;
+    --marca-50: 250 250 250;
+    --marca-100: 245 245 245;
+    --marca-200: 229 229 229;
+    --marca-300: 212 212 212;
+    --marca-400: 163 163 163;
+    --marca-500: 115 115 115;
+    --marca-600: 38 38 38;
+    --marca-700: 23 23 23;
+    --marca-800: 23 23 23;
+    --marca-900: 10 10 10;
+    --fundo: 244 244 244;
+    --destaque: 10 10 10;
     --fonte-texto: "Barlow", ui-sans-serif, system-ui, sans-serif;
     --fonte-titulo: "Oswald", "Barlow", ui-sans-serif, system-ui, sans-serif;
   }
 
-  /* Clínica de estética: leve e elegante. Marfim, nude e terracota suave; títulos com serifa. */
+  /* Clínica de estética: bem-estar feminino. Tons de rosa (do blush ao rosa profundo) e ameixa; títulos com serifa
+     e detalhes em letra cursiva. */
   .tema-clinica {
-    --marca-50: 251 245 242;
-    --marca-100: 245 233 227;
-    --marca-200: 236 214 204;
-    --marca-300: 222 186 171;
-    --marca-400: 201 150 131;
-    --marca-500: 179 119 99;
-    --marca-600: 154 95 78;
-    --marca-700: 127 77 64;
-    --marca-800: 102 63 54;
-    --marca-900: 80 51 45;
-    --fundo: 250 246 241;
-    --destaque: 61 47 42;
+    --marca-50: 255 245 248;
+    --marca-100: 253 232 240;
+    --marca-200: 250 208 223;
+    --marca-300: 245 173 199;
+    --marca-400: 236 130 168;
+    --marca-500: 221 92 139;
+    --marca-600: 194 61 111;
+    --marca-700: 161 45 90;
+    --marca-800: 129 37 74;
+    --marca-900: 99 31 59;
+    --fundo: 255 247 250;
+    --destaque: 92 31 60;
     --fonte-texto: "Jost", ui-sans-serif, system-ui, sans-serif;
     --fonte-titulo: "Cormorant Garamond", Georgia, serif;
+    --fonte-script: "Great Vibes", "Cormorant Garamond", cursive;
+    /* cinzas puxados para o rosa */
+    --cinza-50: 253 248 250;
+    --cinza-100: 248 238 242;
+    --cinza-200: 240 224 231;
+    --cinza-300: 226 204 213;
+    --cinza-400: 184 156 168;
+    --cinza-500: 140 110 123;
+    --cinza-600: 110 82 95;
+    --cinza-700: 88 62 74;
+    --cinza-800: 64 42 52;
+    --cinza-900: 45 28 36;
+    --cinza-950: 28 16 22;
+  }
+
+  /* Páginas do cliente da barbearia: tudo escuro */
+  .escuro {
+    --cinza-50: 23 23 23;
+    --cinza-100: 38 38 38;
+    --cinza-200: 52 52 52;
+    --cinza-300: 72 72 72;
+    --cinza-400: 115 115 115;
+    --cinza-500: 163 163 163;
+    --cinza-600: 190 190 190;
+    --cinza-700: 212 212 212;
+    --cinza-800: 236 236 236;
+    --cinza-900: 250 250 250;
+    --cinza-950: 255 255 255;
+    --marca-50: 28 28 28;
+    --marca-100: 38 38 38;
+    --marca-200: 64 64 64;
+    --marca-300: 229 229 229;
+    --marca-400: 163 163 163;
+    --marca-500: 212 212 212;
+    --marca-600: 250 250 250;
+    --marca-700: 255 255 255;
+    --marca-800: 245 245 245;
+    --marca-900: 255 255 255;
+    --fundo: 10 10 10;
+    --cartao: 20 20 20;
+    color-scheme: dark;
+  }
+  /* Seletor de atributo: com ".bg-white" o Tailwind acusa dependência circular nos @apply */
+  .escuro [class~="bg-white"],
+  .escuro .cartao,
+  .escuro .btn-secundario,
+  .escuro .btn-pequeno {
+    background-color: rgb(var(--cartao));
+  }
+  .escuro :is(input, select, textarea) {
+    background-color: rgb(var(--cartao));
+    color: inherit;
+  }
+  .escuro input[type="checkbox"] {
+    color: #b91c1c;
+  }
+  /* Opção escolhida (dia, horário) em branco: o texto passa a preto */
+  .escuro .peer:checked ~ .peer-checked\:bg-marca-600 {
+    color: rgb(10 10 10);
   }
 
   h1, h2, h3 {
@@ -90,16 +164,19 @@
     @apply ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500;
   }
 
-  /* Barbearia: botões carvão com letras douradas, cantos retos */
+  /* Barbearia: botões retos em caixa alta. Pretos com letras brancas; no site escuro, o contrário. */
   .tema-barbearia .btn-primario {
-    @apply rounded-sm bg-destaque font-semibold uppercase tracking-wider text-marca-300 hover:bg-marca-600 hover:text-white;
+    @apply rounded-sm bg-destaque font-semibold uppercase tracking-wider text-white hover:bg-neutral-700;
+  }
+  .escuro .btn-primario {
+    @apply bg-white text-neutral-950 hover:bg-neutral-300 focus:ring-offset-neutral-950;
   }
   .tema-barbearia .btn-secundario,
   .tema-barbearia .btn-pequeno {
     @apply rounded-sm;
   }
   .tema-barbearia .cartao {
-    @apply rounded-sm border-t-2 border-marca-500 ring-stone-300;
+    @apply rounded-sm border-t-2 border-marca-600 ring-slate-300;
   }
 
   /* Clínica: botões em pílula, cartões arredondados e sombra suave */
@@ -114,25 +191,31 @@
     @apply rounded-3xl shadow-[0_8px_30px_-12px_rgb(var(--marca-700)/0.25)] ring-marca-100;
   }
 
-  /* Topo das páginas do cliente. Na barbearia, faixa escura com detalhe dourado. */
+  /* Topo das páginas do cliente. Na barbearia, o ripado preto da fachada. */
   .tema-barbearia .topo-publico {
-    @apply border-b-4 border-marca-500 bg-destaque;
+    @apply border-b-0 ripado;
   }
   .tema-barbearia .topo-publico .topo-nome {
-    @apply font-titulo uppercase tracking-widest text-marca-300;
+    @apply font-titulo uppercase tracking-widest text-white;
   }
   .tema-barbearia .topo-publico .topo-link,
   .tema-barbearia .topo-publico .topo-suave {
-    @apply text-stone-300 hover:text-marca-300;
+    @apply text-neutral-300 hover:text-white;
   }
   .tema-barbearia .topo-publico .btn-pequeno {
-    @apply border-stone-600 bg-transparent text-stone-200 hover:bg-white/10;
+    @apply border-neutral-600 bg-transparent text-neutral-200 hover:bg-white/10;
   }
   .tema-clinica .topo-publico {
     @apply border-marca-100 bg-white/80 backdrop-blur;
   }
   .tema-clinica .topo-publico .topo-nome {
     @apply font-titulo text-2xl font-semibold text-marca-700;
+  }
+
+  /* Ripado vertical preto, como a parede da fachada */
+  .ripado {
+    background-color: #0d0d0d;
+    background-image: repeating-linear-gradient(90deg, #0d0d0d 0 18px, #1c1c1c 18px 20px, #080808 20px 22px);
   }
 
   /* Listra de barbeiro (vermelho, branco e azul) usada como detalhe decorativo */

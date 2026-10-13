@@ -1,16 +1,18 @@
 {% comment %}Rodapé das páginas do cliente, com o visual do tipo de estabelecimento.{% endcomment %}
 {% with e=estabelecimento_publico horarios=estabelecimento_publico.horarios.all %}
-<footer class="mt-10 {% if e.tipo == 'barbearia' %}border-t-4 border-marca-500 bg-destaque text-stone-400{% elif e.tipo == 'clinica' %}border-t border-marca-100 bg-marca-50 text-stone-600{% else %}border-t border-slate-200 bg-white text-slate-500{% endif %}">
+<footer class="mt-10 {% if e.tipo == 'barbearia' %}ripado text-neutral-400{% elif e.tipo == 'clinica' %}border-t border-marca-200 bg-gradient-to-b from-marca-100 to-marca-50 text-marca-900/80{% else %}border-t border-slate-200 bg-white text-slate-500{% endif %}">
   {% if e.tipo == "barbearia" %}<div class="listra-barbeiro h-1.5" aria-hidden="true"></div>{% endif %}
   <div class="mx-auto grid max-w-5xl gap-6 px-4 py-8 text-sm sm:grid-cols-2">
-    <div>
-      <p class="font-titulo text-xl {% if e.tipo == 'barbearia' %}uppercase tracking-widest text-marca-300{% elif e.tipo == 'clinica' %}font-semibold text-marca-700{% else %}font-semibold text-slate-800{% endif %}">{{ e.nome }}</p>
+    <div{% if e.tipo == "barbearia" %} class="flex items-start gap-4"{% endif %}>
+      {% if e.tipo == "barbearia" %}<div class="w-12 shrink-0 text-white">{% include "publico/_caveira.html" %}</div><div>{% endif %}
+      <p class="font-titulo text-xl {% if e.tipo == 'barbearia' %}uppercase tracking-widest text-white{% elif e.tipo == 'clinica' %}font-semibold text-marca-700{% else %}font-semibold text-slate-800{% endif %}">{{ e.nome }}</p>
       <p class="mt-1">{{ e.get_tipo_display }} · agendamento online</p>
       <a href="{% url 'publico:meus' e.slug %}" class="mt-3 inline-block underline-offset-4 hover:underline">Ver, remarcar ou cancelar meus agendamentos</a>
+      {% if e.tipo == "barbearia" %}</div>{% endif %}
     </div>
     {% if horarios %}
       <div>
-        <p class="font-medium {% if e.tipo == 'barbearia' %}text-stone-200{% elif e.tipo == 'clinica' %}text-marca-800{% else %}text-slate-700{% endif %}">Horário de funcionamento</p>
+        <p class="font-medium {% if e.tipo == 'barbearia' %}text-white{% elif e.tipo == 'clinica' %}text-marca-800{% else %}text-slate-700{% endif %}">Horário de funcionamento</p>
         <ul class="mt-2 max-w-xs space-y-1">
           {% for h in horarios %}
             <li class="flex justify-between gap-4"><span>{{ h.get_dia_semana_display }}</span><span class="tabular-nums">{{ h.inicio|time:"H:i" }}–{{ h.fim|time:"H:i" }}</span></li>

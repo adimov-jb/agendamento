@@ -2,85 +2,123 @@
 {% with e=estabelecimento_publico %}
 {% url 'publico:meus' e.slug as url_meus %}
 {% if e.tipo == "barbearia" %}
-  <section class="overflow-hidden rounded-sm bg-destaque text-stone-300 shadow-lg">
-    <div class="listra-barbeiro h-2" aria-hidden="true"></div>
-    <div class="grid items-center gap-8 p-6 sm:p-10 md:grid-cols-[1fr_auto]">
-      <div class="text-center md:text-left">
-        <p class="font-titulo text-xs uppercase tracking-[0.35em] text-marca-300 sm:text-sm">Barbearia clássica</p>
-        <h1 class="mt-3 text-3xl leading-tight text-white sm:text-5xl">{{ e.nome }}</h1>
-        <div class="mx-auto mt-4 h-0.5 w-16 bg-marca-400 md:mx-0" aria-hidden="true"></div>
-        <p class="mx-auto mt-4 max-w-xl md:mx-0">Corte na tesoura e na máquina, barba na toalha quente e aquele acabamento caprichado. Escolha o serviço e garanta a sua cadeira, sem fila.</p>
-        <div class="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
-          <a href="#servicos" class="btn-primario border border-marca-500">Ver serviços</a>
-          <a href="{{ url_meus }}" class="btn-secundario border-stone-600 bg-transparent text-stone-200 hover:bg-white/10">Meus horários</a>
-        </div>
-      </div>
-      <div class="mx-auto">
-        {% if e.url_foto %}
-          <img src="{{ e.url_foto }}" alt="{{ e.nome }}" width="208" height="208"
-               class="h-40 w-40 rounded-full object-cover ring-4 ring-marca-500 ring-offset-4 ring-offset-destaque sm:h-52 sm:w-52">
-        {% else %}
-          <div class="flex h-40 w-40 items-center justify-center rounded-full border-2 border-marca-500 text-marca-300 sm:h-52 sm:w-52" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-20 w-20 sm:h-24 sm:w-24">
-              <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>
-            </svg>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </section>
-
-  <ul class="mt-4 grid gap-px overflow-hidden rounded-sm bg-stone-300 text-sm sm:grid-cols-3">
-    <li class="bg-white px-5 py-4"><span class="font-titulo uppercase tracking-wider text-marca-700">Corte & barba</span><span class="block text-stone-600">Do clássico ao degradê, com acabamento na navalha.</span></li>
-    <li class="bg-white px-5 py-4"><span class="font-titulo uppercase tracking-wider text-marca-700">Toalha quente</span><span class="block text-stone-600">O ritual tradicional da barbearia.</span></li>
-    <li class="bg-white px-5 py-4"><span class="font-titulo uppercase tracking-wider text-marca-700">Hora marcada</span><span class="block text-stone-600">Agende online e seja atendido no seu horário.</span></li>
-  </ul>
-
-  <div id="servicos" class="mt-10 flex scroll-mt-4 items-center gap-4">
-    <h2 class="shrink-0 text-2xl text-destaque">Serviços</h2>
-    <span class="h-px flex-1 bg-marca-400" aria-hidden="true"></span>
-  </div>
-  <p class="mt-2 text-stone-600">Escolha o serviço. Em seguida, quem vai atender você e o melhor horário.</p>
-
-{% elif e.tipo == "clinica" %}
-  <section class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-marca-100 via-white to-marca-50 ring-1 ring-marca-100">
-    <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-marca-200/60 blur-3xl" aria-hidden="true"></div>
-    <div class="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-marca-100 blur-3xl" aria-hidden="true"></div>
+  <section class="relative overflow-hidden rounded-sm bg-neutral-950 text-neutral-300 shadow-2xl ring-1 ring-white/10">
+    {% if e.url_foto %}
+      <img src="{{ e.url_foto }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-25 grayscale" aria-hidden="true">
+    {% endif %}
+    <div class="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/90 to-neutral-950/50" aria-hidden="true"></div>
     <div class="relative grid items-center gap-8 p-6 sm:p-10 md:grid-cols-[1fr_auto]">
       <div class="text-center md:text-left">
-        <p class="text-xs font-medium uppercase tracking-[0.35em] text-marca-600">Estética &amp; bem-estar</p>
-        <h1 class="mt-3 text-4xl leading-tight text-destaque sm:text-6xl">{{ e.nome }}</h1>
-        <p class="mx-auto mt-4 max-w-xl text-stone-600 md:mx-0">Tratamentos pensados para realçar a sua beleza natural, com tempo, carinho e atenção a cada detalhe. Reserve o seu momento.</p>
-        <div class="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
-          <a href="#servicos" class="btn-primario">Ver tratamentos</a>
-          <a href="{{ url_meus }}" class="btn-secundario">Meus agendamentos</a>
+        <p class="font-titulo text-xs uppercase tracking-[0.4em] text-neutral-400 sm:text-sm">Barber shop</p>
+        <h1 class="mt-3 text-4xl leading-none text-white sm:text-6xl">{{ e.nome }}</h1>
+        <div class="mx-auto mt-5 flex max-w-[14rem] items-center gap-3 text-white md:mx-0" aria-hidden="true">
+          <span class="h-px flex-1 bg-white/40"></span>
+          <svg viewBox="0 0 64 24" fill="currentColor" class="h-5 w-14"><path d="M32 10C28 4 18 2 12 8c-4 4-8 4-10 1 0 7 8 11 16 8 6-2 10-4 14-4s8 2 14 4c8 3 16-1 16-8-2 3-6 3-10-1-6-6-16-4-20 2Z"/></svg>
+          <span class="h-px flex-1 bg-white/40"></span>
+        </div>
+        <p class="mx-auto mt-5 max-w-xl md:mx-0">Cabelo, barba e cerveja gelada. Navalha afiada, papo bom e o seu horário garantido, sem fila. Escolha o serviço e puxe a cadeira.</p>
+        <div class="mt-7 flex flex-wrap justify-center gap-3 md:justify-start">
+          <a href="#servicos" class="btn-primario px-6 py-3">Ver serviços</a>
+          <a href="{{ url_meus }}" class="btn-secundario border-neutral-600 bg-transparent py-3 text-neutral-200 hover:bg-white/10">Meus horários</a>
         </div>
       </div>
-      <div class="mx-auto">
+      <div class="mx-auto w-40 text-neutral-100 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] sm:w-56">
+        {% include "publico/_caveira.html" %}
+      </div>
+    </div>
+    <div class="listra-barbeiro relative h-2" aria-hidden="true"></div>
+  </section>
+
+  <ul class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+    <li class="flex items-center gap-4 rounded-sm bg-neutral-900 px-5 py-4 ring-1 ring-white/10">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 shrink-0 text-white" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>
+      <span><span class="block font-titulo uppercase tracking-wider text-white">Cabelo</span><span class="text-neutral-400">Do clássico ao degradê, na tesoura ou na máquina.</span></span>
+    </li>
+    <li class="flex items-center gap-4 rounded-sm bg-neutral-900 px-5 py-4 ring-1 ring-white/10">
+      <svg viewBox="0 0 64 24" fill="currentColor" class="h-8 w-8 shrink-0 text-white" aria-hidden="true"><path d="M32 10C28 4 18 2 12 8c-4 4-8 4-10 1 0 7 8 11 16 8 6-2 10-4 14-4s8 2 14 4c8 3 16-1 16-8-2 3-6 3-10-1-6-6-16-4-20 2Z"/></svg>
+      <span><span class="block font-titulo uppercase tracking-wider text-white">Barba</span><span class="text-neutral-400">Toalha quente e acabamento na navalha.</span></span>
+    </li>
+    <li class="flex items-center gap-4 rounded-sm bg-neutral-900 px-5 py-4 ring-1 ring-white/10">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 shrink-0 text-white" aria-hidden="true"><path d="M5 8h11v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2Z"/><path d="M16 11h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M5 8a2.5 2.5 0 0 1 3-3 3 3 0 0 1 5 0 2.5 2.5 0 0 1 3 3"/><path d="M9 12v6M12 12v6"/></svg>
+      <span><span class="block font-titulo uppercase tracking-wider text-white">Cerveja gelada</span><span class="text-neutral-400">Para curtir enquanto espera a sua vez.</span></span>
+    </li>
+  </ul>
+
+  <div id="servicos" class="mt-12 flex scroll-mt-4 items-center gap-4">
+    <span class="h-px flex-1 bg-white/20" aria-hidden="true"></span>
+    <div class="w-7 text-white">{% include "publico/_caveira.html" %}</div>
+    <h2 class="text-3xl text-white">Serviços</h2>
+    <div class="w-7 text-white">{% include "publico/_caveira.html" %}</div>
+    <span class="h-px flex-1 bg-white/20" aria-hidden="true"></span>
+  </div>
+  <p class="mt-3 text-center text-neutral-400">Escolha o serviço. Em seguida, quem vai atender você e o melhor horário.</p>
+
+{% elif e.tipo == "clinica" %}
+  <section class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-marca-100 via-marca-50 to-white ring-1 ring-marca-200/70">
+    <div class="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full bg-marca-300/40 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-marca-200/60 blur-3xl" aria-hidden="true"></div>
+    <div class="relative grid items-center gap-10 px-6 py-10 sm:px-12 sm:py-14 md:grid-cols-[1fr_auto]">
+      <div class="text-center md:text-left">
+        <p class="font-script text-3xl text-marca-500 sm:text-4xl">bem-estar feminino</p>
+        <h1 class="mt-1 text-4xl leading-tight text-destaque sm:text-6xl">{{ e.nome }}</h1>
+        <p class="mx-auto mt-4 max-w-xl text-marca-900/80 md:mx-0">Um refúgio de beleza e autocuidado feito para você, mulher. Tratamentos que cuidam da pele, do corpo e da autoestima, com carinho e no seu tempo.</p>
+        <div class="mt-7 flex flex-wrap justify-center gap-3 md:justify-start">
+          <a href="#servicos" class="btn-primario px-6 py-3 shadow-lg shadow-marca-300/50">Quero me cuidar</a>
+          <a href="{{ url_meus }}" class="btn-secundario py-3">Meus agendamentos</a>
+        </div>
+      </div>
+      <div class="relative mx-auto">
+        <div class="absolute -inset-3 rounded-t-full rounded-b-[2.5rem] border border-marca-300" aria-hidden="true"></div>
         {% if e.url_foto %}
-          <img src="{{ e.url_foto }}" alt="{{ e.nome }}" width="192" height="256"
-               class="h-56 w-44 rounded-t-full rounded-b-3xl object-cover shadow-xl ring-8 ring-white sm:h-64 sm:w-48">
+          <img src="{{ e.url_foto }}" alt="{{ e.nome }}" width="208" height="280"
+               class="relative h-64 w-48 rounded-t-full rounded-b-[2rem] object-cover shadow-2xl shadow-marca-300/60 sm:h-72 sm:w-52">
         {% else %}
-          <div class="flex h-56 w-44 items-center justify-center rounded-t-full rounded-b-3xl bg-white/70 text-marca-500 shadow-xl ring-8 ring-white sm:h-64 sm:w-48" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="h-20 w-20">
-              <path d="M12 21c-4-3-7-6.5-7-10.5C5 7 7 4 12 3c5 1 7 4 7 7.5 0 4-3 7.5-7 10.5Z"/><path d="M12 21V9"/><path d="M12 14c-2-1-3.5-2.5-4-4.5M12 12c1.5-1 2.7-2.3 3.2-4"/>
-            </svg>
+          <div class="relative flex h-64 w-48 items-center justify-center rounded-t-full rounded-b-[2rem] bg-white/80 text-marca-400 shadow-2xl shadow-marca-300/60 sm:h-72 sm:w-52">
+            <div class="w-24">{% include "publico/_flor.html" %}</div>
           </div>
         {% endif %}
+        <div class="absolute -bottom-6 -right-8 w-16 text-marca-500 sm:w-20" aria-hidden="true">{% include "publico/_flor.html" %}</div>
+        <p class="absolute -left-6 bottom-10 rounded-full bg-white px-4 py-2 text-xs font-medium text-marca-700 shadow-lg shadow-marca-200 sm:-left-12">♡ Feito para você</p>
       </div>
     </div>
   </section>
 
-  <ul class="mt-6 grid gap-3 text-center text-sm sm:grid-cols-3">
-    <li class="rounded-2xl bg-white/70 px-5 py-4 ring-1 ring-marca-100"><span class="block font-titulo text-xl font-semibold text-marca-700">Atendimento individual</span><span class="text-stone-600">Cada tratamento no seu tempo.</span></li>
-    <li class="rounded-2xl bg-white/70 px-5 py-4 ring-1 ring-marca-100"><span class="block font-titulo text-xl font-semibold text-marca-700">Ambiente acolhedor</span><span class="text-stone-600">Um espaço para relaxar e se cuidar.</span></li>
-    <li class="rounded-2xl bg-white/70 px-5 py-4 ring-1 ring-marca-100"><span class="block font-titulo text-xl font-semibold text-marca-700">Agendamento online</span><span class="text-stone-600">Escolha dia e horário em poucos passos.</span></li>
+  <ul class="mt-8 grid gap-4 text-center sm:grid-cols-3">
+    <li class="rounded-[2rem] bg-white px-6 py-6 shadow-[0_10px_30px_-15px_rgb(var(--marca-600)/0.35)] ring-1 ring-marca-100">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-marca-100 text-marca-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>
+      </span>
+      <span class="mt-3 block font-titulo text-2xl font-semibold text-destaque">Autocuidado</span>
+      <span class="text-sm text-marca-900/70">Um tempo só seu, para desacelerar e se cuidar.</span>
+    </li>
+    <li class="rounded-[2rem] bg-white px-6 py-6 shadow-[0_10px_30px_-15px_rgb(var(--marca-600)/0.35)] ring-1 ring-marca-100">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-marca-100 text-marca-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3Z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8Z"/></svg>
+      </span>
+      <span class="mt-3 block font-titulo text-2xl font-semibold text-destaque">Autoestima</span>
+      <span class="text-sm text-marca-900/70">Realçar a sua beleza natural, do seu jeito.</span>
+    </li>
+    <li class="rounded-[2rem] bg-white px-6 py-6 shadow-[0_10px_30px_-15px_rgb(var(--marca-600)/0.35)] ring-1 ring-marca-100">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-marca-100 text-marca-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7" aria-hidden="true"><path d="M12 19c-3-2-4.5-5-4.5-8.5C9.5 11.5 11 13 12 15c1-2 2.5-3.5 4.5-4.5C16.5 14 15 17 12 19Z"/><path d="M12 15c-.5-3 0-6 0-10 1.5 2 2.5 4 2.6 6"/><path d="M12 15c0-3-1-6-2.6-4"/><path d="M4 19c3 1 5 1 8 0 3 1 5 1 8 0"/></svg>
+      </span>
+      <span class="mt-3 block font-titulo text-2xl font-semibold text-destaque">Bem-estar</span>
+      <span class="text-sm text-marca-900/70">Ambiente acolhedor, calmo e feminino.</span>
+    </li>
   </ul>
 
+  <figure class="relative mt-10 overflow-hidden rounded-[2rem] bg-gradient-to-r from-marca-600 via-marca-500 to-marca-400 px-6 py-8 text-center text-white sm:py-10">
+    <div class="pointer-events-none absolute -left-6 -top-6 w-24 text-white/25 sm:w-32" aria-hidden="true">{% include "publico/_flor.html" %}</div>
+    <div class="pointer-events-none absolute -bottom-8 -right-4 w-24 rotate-12 text-white/25 sm:w-32" aria-hidden="true">{% include "publico/_flor.html" %}</div>
+    <blockquote class="relative font-script text-4xl leading-snug sm:text-5xl">Cuidar de si é um ato de amor.</blockquote>
+    <figcaption class="relative mt-2 text-xs uppercase tracking-[0.35em] text-white/90">Reserve o seu momento</figcaption>
+  </figure>
+
   <div id="servicos" class="mt-12 scroll-mt-4 text-center">
-    <p class="text-xs font-medium uppercase tracking-[0.35em] text-marca-600">Nossos cuidados</p>
-    <h2 class="mt-1 text-3xl text-destaque sm:text-4xl">Tratamentos</h2>
-    <p class="mt-2 text-stone-600">Escolha o tratamento. Em seguida, quem vai atender você e o melhor horário.</p>
+    <div class="mx-auto w-10 text-marca-400" aria-hidden="true">{% include "publico/_flor.html" %}</div>
+    <p class="mt-1 font-script text-3xl text-marca-500">nossos cuidados</p>
+    <h2 class="text-3xl text-destaque sm:text-4xl">Tratamentos</h2>
+    <p class="mt-2 text-marca-900/70">Escolha o tratamento. Em seguida, quem vai atender você e o melhor horário.</p>
   </div>
 
 {% else %}
